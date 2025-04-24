@@ -1,7 +1,9 @@
 import { type RandomNumberFunction, getRandomElementFrom, randomNumberFunctionFromMathDotRandom } from './random';
 
+const CUBE_LENGTH = 54;
+
 export function solved(): Cube {
-  return Object.seal([
+  const cube: Cube = Object.seal([
     "green", "green","green","green","green","green","green","green","green",
     "orange", "orange","orange","orange","orange","orange","orange","orange","orange",
     "blue","blue","blue","blue","blue","blue","blue","blue","blue",
@@ -9,6 +11,11 @@ export function solved(): Cube {
     "white", "white","white","white","white","white","white","white","white",
     "yellow", "yellow","yellow","yellow","yellow","yellow","yellow","yellow","yellow",
   ]);
+  if (cube.length !== CUBE_LENGTH) {
+    throw new Error("internal error y9wf7jvh2q: "
+    + `cube.length==${cube.length}, but expected ${CUBE_LENGTH}`);
+  }
+  return cube;
 }
 
 export interface ScrambleOptions {
@@ -58,23 +65,11 @@ const moveFunctionByMove: Record<Move, (cube: Cube) => void> = Object.freeze({
 });
 
 export function moveR(cube: Cube): void {
-  let color1, color2: Color;
-
-  color1 = cube[38];
-  cube[38] = cube[2];
-  color2 = cube[20];
-  cube[20] = color1;
-  color1 = cube[47];
-  cube[47] = color2;
-  cube[2] = color1;
-
-  color1 = cube[41];
-  cube[41] = cube[5];
-  color2 = cube[23];
-  cube[23] = color1;
-  color1 = cube[47];
-  cube[47] = color2;
-  cube[2] = color1;
+  rotate(cube, 2, 38, 20, 47);
+  rotate(cube, 5, 41, 23, 50);
+  rotate(cube, 8, 44, 26, 53);
+  rotate(cube, 27, 29, 35, 33);
+  rotate(cube, 28, 32, 34, 30);
 }
 
 function swap<K extends number>(cube: Cube, index1: K extends keyof Cube ? K : never, index2: K extends keyof Cube ? K : never): void {
@@ -83,8 +78,12 @@ function swap<K extends number>(cube: Cube, index1: K extends keyof Cube ? K : n
   cube[index2] = color;
 }
 
-function foo(cube: Cube) {
-  swap(cube, 2, 399);
+function rotate<K extends number>(cube: Cube, index1: K extends keyof Cube ? K : never, index2: K extends keyof Cube ? K : never, index3: K extends keyof Cube ? K : never, index4: K extends keyof Cube ? K : never): void {
+  const index4Color = cube[index4];
+  cube[index4] = cube[index3];
+  cube[index3] = cube[index2];
+  cube[index2] = cube[index1];
+  cube[index1] = index4Color;
 }
 
 export function moveRPrime(cube: Cube): void {
@@ -157,15 +156,17 @@ export function moveD2(cube: Cube): void {
 
 export type Color = "green" | "red" | "orange" | "blue" | "white" | "yellow";
 
+const allColors: readonly Color[] = Object.freeze([
+  "green", "red", "orange", "blue", "white", "yellow"
+]);
+
+export function isColor(value: unknown): value is Color {
+  return (allColors as unknown[]).includes(value);
+}
+
 export type Side = "front" | "left" | "right" | "back" | "top" | "bottom";
 
-export type Row = 0 | 1 | 2
-
-export type Column = 0 | 1 | 2
-
-export type Coordinate = [Side, Row, Column]
-
-export type Move = 
+export type Move =
     | "R" | "R'" | "R2"
     | "L" | "L'" | "L2"
     | "F" | "F'" | "F2"
@@ -181,6 +182,10 @@ const allMoves: readonly Move[] = Object.freeze([
     "U" , "U'" , "U2",
     "D" , "D'" , "D2",
 ]);
+
+export function isMove(value: unknown): value is Color {
+  return (allMoves as unknown[]).includes(value);
+}
 
 type Cube = [
   // 0-8: Front/Green face
@@ -213,3 +218,30 @@ type Cube = [
   Color, "yellow", Color, // 48,  49,  50: middle row left to right
   Color, Color, Color,    // 51,  52,  53: back row left to right
 ];
+
+export function areCubesEqual(cube1: Cube, cube2: Cube): boolean {
+  if (cube1.length !== cube2.length) {
+    return false;
+  }
+  for (let i=0; i<cube1.length; i++) {
+    if (cube1[i] !== cube2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function isCube(value: unknown): value is Cube {
+  if (! Array.isArray(value)) {
+    return false;
+  }
+  if (value.length !== CUBE_LENGTH) {
+    return false;
+  }
+  for (let i=0; i<value.length; i++) {
+    if (! isColor(value[i])) {
+      return false;
+    }
+  }
+  return true;
+}
