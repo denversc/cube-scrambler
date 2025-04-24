@@ -14,5 +14,12 @@
     "url": "git+https://github.com/denversc/cube-scrambler.git"
   },
   "license": "Apache-2.0",
-  "type": "commonjs"
+  "type": "commonjs",
+  "scripts": {
+    "compile": "tsc -b"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.1",
+    "typescript": "^5.8.3"
+  }
 }
