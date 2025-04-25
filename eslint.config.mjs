@@ -8,7 +8,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    "ignores": ["build/**/*"],
+    "ignores": ["build/**/*", "test/mocha_ts_node_register.js"],
   },
   {
     "rules": {
