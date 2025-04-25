@@ -1,4 +1,4 @@
-import { type RandomNumberFunction, getRandomElementFrom, randomNumberFunctionFromMathDotRandom } from './random';
+import { type RandomNumberGenerator, getRandomElementFrom, MathRandomRandomNumberGenerator } from './random';
 
 const CUBE_LENGTH = 54;
 
@@ -20,7 +20,7 @@ export function solved(): Cube {
 
 export interface ScrambleOptions {
   numMoves?: number;
-  randomNumberFunction?: RandomNumberFunction;
+  rng?: RandomNumberGenerator;
 }
 
 export function scramble(cube: Cube, options?: ScrambleOptions): void {
@@ -30,10 +30,10 @@ export function scramble(cube: Cube, options?: ScrambleOptions): void {
         + `(must be greater than or equal to 0) `
         + `(error code a3phx79vb4)`);
   }
-  const randomNumberFunction = options?.randomNumberFunction ?? randomNumberFunctionFromMathDotRandom();
+  const rng = options?.rng ?? new MathRandomRandomNumberGenerator();
 
   for (let i=0; i<numMoves; i++) {
-    const move = getRandomElementFrom(allMoves, randomNumberFunction);
+    const move = getRandomElementFrom(allMoves, rng);
     performMove(cube, move);
   }
 }

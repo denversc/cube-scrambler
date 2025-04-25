@@ -16,7 +16,8 @@
   "license": "Apache-2.0",
   "type": "commonjs",
   "scripts": {
-    "compile": "tsc -b"
+    "compile": "tsc -b",
+    "test": "mocha"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",

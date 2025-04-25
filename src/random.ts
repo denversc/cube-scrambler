@@ -1,18 +1,20 @@
 import {Alea} from './alea'
 
-/**
- * A function that produces floating-point numbers in the half-open range [0..1).
- */
-export type RandomNumberFunction = () => number;
+export interface RandomNumberGenerator {
+  /**
+   * Returns a floating-point number in the half-open range [0..1).
+   */
+  next(): number;
+}
 
-export function getRandomElementFrom<T>(elements: readonly T[], randomNumberFunction: RandomNumberFunction): T {
+export function getRandomElementFrom<T>(elements: readonly T[], rng: RandomNumberGenerator): T {
     const elementsLength = elements.length;
     if (elementsLength === 0) {
         throw new Error("elements must be empty (error code ggr47yr5be)");
     }
-    const randomNumber = randomNumberFunction();
+    const randomNumber = rng.next();
     if (randomNumber < 0 || randomNumber >= 1) {
-        throw new Error(`randomNumberFunction ${randomNumberFunction} produced an invalid number: ${randomNumber}`
+        throw new Error(`RandomNumberGenerator ${rng} produced an out-of-range number: ${randomNumber}`
         + ` (must be greater than or equal to zero and strictly less than 1) ` +
             `(error code xy7zr5xkxr)`);
     }
@@ -20,19 +22,23 @@ export function getRandomElementFrom<T>(elements: readonly T[], randomNumberFunc
     return elements[elementIndex]!;
 }
 
-const mathDotRandomRandomNumberFunction = (() => Math.random()) satisfies RandomNumberFunction;
-
-export function randomNumberFunctionFromMathDotRandom(): RandomNumberFunction {
-    return mathDotRandomRandomNumberFunction;
+export class MathRandomRandomNumberGenerator implements RandomNumberGenerator {
+  next(): number {
+    return Math.random();
+  }
 }
 
-export function randomNumberFunctionFromAlea(alea: Alea): RandomNumberFunction {
-    return () => {
-        while (true) {
-            const randomNumber = alea.next();
-            if (randomNumber != 1) {
-                return randomNumber;
-            }
-        }
+export class AleaRandomNumberGenerator implements RandomNumberGenerator {
+
+  constructor(readonly alea: Alea) {
+  }
+
+  next(): number {
+    while (true) {
+      const randomNumber = this.alea.next();
+      if (randomNumber != 1) {
+        return randomNumber;
+      }
     }
+  }
 }

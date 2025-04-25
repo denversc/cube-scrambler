@@ -4,6 +4,7 @@
   "references": [
     { "path": "./src" },
     { "path": "./src/browser" },
-    { "path": "./src/node" }
+    { "path": "./src/node" },
+    { "path": "./test" }
   ]
 }
