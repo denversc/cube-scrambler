@@ -34,11 +34,6 @@ export class AleaRandomNumberGenerator implements RandomNumberGenerator {
   }
 
   next(): number {
-    while (true) {
-      const randomNumber = this.alea.next();
-      if (randomNumber != 1) {
-        return randomNumber;
-      }
-    }
+    return this.alea.next();
   }
 }

@@ -53,7 +53,7 @@ export class Alea {
     }
   }
 
-  /** Returns a random number in the half-open range [0..1]. */
+  /** Returns a random number in the half-open range [0..1). */
   next(): number {
     return (
       this._next() + ((this._next() * 0x200000) | 0) * 1.1102230246251565e-16
