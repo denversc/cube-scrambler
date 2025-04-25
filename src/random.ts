@@ -31,7 +31,11 @@ export class MathRandomRandomNumberGenerator implements RandomNumberGenerator {
 }
 
 export class AleaRandomNumberGenerator implements RandomNumberGenerator {
-  constructor(readonly alea: Alea) {}
+  readonly alea: Alea;
+
+  constructor(alea?: Alea) {
+    this.alea = alea ?? new Alea(Math.random());
+  }
 
   next(): number {
     return this.alea.next();

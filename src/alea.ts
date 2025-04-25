@@ -33,7 +33,7 @@ export class Alea {
   private s2: number;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(seed: any) {
+  constructor(readonly seed: any) {
     const mash = Mash();
 
     this.s0 = mash(" ");

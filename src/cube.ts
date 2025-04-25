@@ -164,7 +164,7 @@ export function moveD2(cube: Cube): void {
 
 export type Color = "green" | "red" | "orange" | "blue" | "white" | "yellow";
 
-const allColors: readonly Color[] = Object.freeze([
+export const allColors: readonly Color[] = Object.freeze([
   "green",
   "red",
   "orange",

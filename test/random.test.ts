@@ -58,21 +58,50 @@ describe("random.ts [mq8ewq77j9]", () => {
 
   describe("AleaRandomNumberGenerator [f7mc2m6brj]", () => {
     it("should generate same numbers as the underlying Alea", () => {
-      const seed = 0.9302521400230523;
+      const seed = Math.random();
       const alea1 = new Alea(seed);
-      const aleaNumbers: number[] = [];
+      const expectedNumbers: number[] = [];
       for (let i = 0; i < 100; i++) {
-        aleaNumbers.push(alea1.next());
+        expectedNumbers.push(alea1.next());
       }
 
       const alea2 = new Alea(seed);
       const rng = new AleaRandomNumberGenerator(alea2);
-      const rngNumbers: number[] = [];
+      const actualNumbers: number[] = [];
       for (let i = 0; i < 100; i++) {
-        rngNumbers.push(rng.next());
+        actualNumbers.push(rng.next());
       }
 
-      expect(rngNumbers, `seed=${seed}`).to.deep.equal(aleaNumbers);
+      expect(actualNumbers, `seed=${seed}`).to.deep.equal(expectedNumbers);
+    });
+
+    it("empty constructor should encapsulate a newly-created Alea instance", () => {
+      const rng1 = new AleaRandomNumberGenerator();
+      const rng2 = new AleaRandomNumberGenerator();
+      const rng3 = new AleaRandomNumberGenerator();
+      if (rng1.alea.seed === rng2.alea.seed && rng2.alea.seed === rng3.alea.seed) {
+        expect.fail(
+          "All AleaRandomNumberGenerator instances used the same seed, " +
+            `and they should each have randomly-generated seeds (seed=${rng1.alea.seed})`,
+        );
+      }
+    });
+
+    it("empty constructor should generate numbers from the encapsulated Alea instance", () => {
+      const rng = new AleaRandomNumberGenerator();
+
+      const alea = new Alea(rng.alea.seed);
+      const expectedNumbers: number[] = [];
+      for (let i = 0; i < 10; i++) {
+        expectedNumbers.push(alea.next());
+      }
+
+      const actualNumbers: number[] = [];
+      for (let i = 0; i < 10; i++) {
+        actualNumbers.push(rng.next());
+      }
+
+      expect(actualNumbers, `seed=${alea.seed}`).to.deep.equal(expectedNumbers);
     });
   });
 });
