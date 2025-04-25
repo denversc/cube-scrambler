@@ -17,7 +17,8 @@
   "type": "commonjs",
   "scripts": {
     "compile": "tsc -b",
-    "test": "mocha"
+    "test": "mocha",
+    "test-ci": "mocha --exit --check-leaks --fail-zero --forbid-only --forbid-pending"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",

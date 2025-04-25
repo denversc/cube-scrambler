@@ -1,6 +1,6 @@
 {
   "extension": "ts",
-  "require": "ts-node/register",
+  "require": "test/mocha_ts_node_register.js",
   "spec": "test/**/*.test.ts",
   "timeout": 60000
 }
