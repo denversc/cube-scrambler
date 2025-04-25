@@ -1,13 +1,17 @@
 import { expect } from "chai";
 import type { Suite } from "mocha";
 
-import { isCube, solved } from "../src/cube";
-import { getRandomElementFrom } from "../src/random";
-import { nonArrayValues, randomColor, randomColorArray } from "./cube.testing";
+import { copyCube,CUBE_LENGTH, isCube, isEqualCube, solved } from "../src/cube";
+import { getRandomElementFrom, getRandomIndexOf } from "../src/random";
+import { nonArrayValues, randomColor, randomColorArray,randomCube } from "./cube.testing";
 import { initializeRngForEachTest, rng } from "./random.testing";
 
 describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
   const seed = initializeRngForEachTest(this);
+
+  it("CUBE_LENGTH [qz9pw7j27t]", () => {
+    expect(CUBE_LENGTH).to.equal(solved().length);
+  });
 
   describe("isCube() [pvbdrgebe8]", () => {
     it("should return true on a solved cube", () => {
@@ -24,8 +28,7 @@ describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
     });
 
     it("should return true on a manually-created array of colors with the correct length", () => {
-      const cubeLength = solved().length;
-      const cube = randomColorArray(cubeLength);
+      const cube = randomColorArray(CUBE_LENGTH);
       expect(isCube(cube), `cube=${cube}`).to.equal(true);
     });
 
@@ -44,11 +47,9 @@ describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
       type Result = { value: unknown; returnValue: boolean };
       const actualResults: Array<Result> = [];
       const expectedResults: Array<Result> = [];
-      const cubeLength = solved().length;
 
-      expect(cubeLength, "cubeLength").is.lessThan(100);
       for (let i = 0; i < 100; i++) {
-        if (i == cubeLength) {
+        if (i == CUBE_LENGTH) {
           continue;
         }
         const value = Object.freeze(randomColorArray(i));
@@ -71,6 +72,44 @@ describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
         expectedResults.push({ value, returnValue: false });
       }
       expect(actualResults, `seed=${seed.seed}`).to.deep.equal(expectedResults);
+    });
+  });
+
+  describe("isEqualCube() [nrwqww5n3j]", () => {
+    it("should return true for two solved cubes", () => {
+      const cube1 = solved();
+      const cube2 = solved();
+      expect(isEqualCube(cube1, cube2), `cube1=${cube1} cube2=${cube2}`).to.equal(true);
+    });
+
+    it("should return true for two identical unsolved cubes", () => {
+      for (let i = 0; i < 100; i++) {
+        const cube1 = randomCube();
+        const cube2 = copyCube(cube1);
+        expect(cube1).is.not.equal(cube2); // confirm that copyCube() returns a distinct object
+        const message = `i=${i} seed=${seed.seed} cube1=${cube1} cube2=${cube2}`;
+        expect(isEqualCube(cube1, cube2), message).to.equal(true);
+      }
+    });
+
+    it("should return false if one element differs", () => {
+      for (let i = 0; i < 100; i++) {
+        const cube1 = randomCube();
+        const cube2 = copyCube(cube1);
+
+        const indexToChange = getRandomIndexOf(cube2, rng);
+        const oldValueAtIndexToChange = cube2[indexToChange];
+        while (true) {
+          const newValueAtIndexToChange = randomColor();
+          if (newValueAtIndexToChange !== oldValueAtIndexToChange) {
+            cube2[indexToChange] = newValueAtIndexToChange;
+            break;
+          }
+        }
+
+        const message = `i=${i} seed=${seed.seed} cube1=${cube1} cube2=${cube2}`;
+        expect(isEqualCube(cube1, cube2), message).to.equal(false);
+      }
     });
   });
 });

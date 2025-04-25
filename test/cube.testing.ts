@@ -1,4 +1,5 @@
-import { allColors, Color } from "../src/cube";
+import type { Cube } from "../src/cube";
+import { allColors, Color,CUBE_LENGTH } from "../src/cube";
 import { getRandomElementFrom } from "../src/random";
 import { rng as rng } from "./random.testing";
 
@@ -8,6 +9,10 @@ export function nonArrayValues(): unknown[] {
 
 export function randomColor(): Color {
   return getRandomElementFrom(allColors, rng);
+}
+
+export function randomCube(): Cube {
+  return randomColorArray(CUBE_LENGTH) as Cube;
 }
 
 export function randomColorArray(length: number): Color[] {

@@ -4,7 +4,7 @@ import {
   type RandomNumberGenerator,
 } from "./random";
 
-const CUBE_LENGTH = 54;
+export const CUBE_LENGTH = 54;
 
 export function solved(): Cube {
   // prettier-ignore
@@ -203,7 +203,7 @@ export function isMove(value: unknown): value is Color {
 }
 
 // prettier-ignore
-type Cube = [
+export type Cube = [
   // 0-8: Front/Green face
   Color, Color, Color,    // 0,  1,  2: top row left to right
   Color, "green", Color,  // 3,  4,  5: middle row left to right
@@ -234,6 +234,10 @@ type Cube = [
   Color, "yellow", Color, // 48,  49,  50: middle row left to right
   Color, Color, Color,    // 51,  52,  53: back row left to right
 ];
+
+export function copyCube(cube: Cube): Cube {
+  return Array.from(cube) as Cube;
+}
 
 export function isEqualCube(cube1: Cube, cube2: Cube): boolean {
   if (cube1.length !== cube2.length) {
