@@ -22,33 +22,36 @@ export interface InitializeRngResult {
 
 export function initializeRng(seed?: number): InitializeRngResult {
   if (rng !== uninitializedRandomNumberGenerator()) {
-      throw new Error(
-        `refusing to initialize rng because it is already initialized to ${rng}; make sure that ` +
+    throw new Error(
+      `refusing to initialize rng because it is already initialized to ${rng}; make sure that ` +
         `all calls to initializeRng() call the returned "clear" function before calling ` +
-        `initializeRng() again [tp4746tnr9]`
-      );
+        `initializeRng() again [tp4746tnr9]`,
+    );
   }
 
-  if (typeof seed === 'undefined') {
-    const aleaRng = new AleaRandomNumberGenerator();
-    rng = aleaRng;
-    seed = aleaRng.alea.seed;
+  if (typeof seed === "undefined") {
+    seed = AleaRandomNumberGenerator.randomSeed();
   }
 
-  rng = newRandomNumberGenerator;
+  const numericSeed: number = seed;
+  const newRng = AleaRandomNumberGenerator.forSeed(numericSeed);
+  rng = newRng;
 
-  return () => {
-    if (rng === uninitializedRandomNumberGenerator()) {
-      return;
-    }
-    if (rng !== newRandomNumberGenerator) {
-      throw new Error(
-        `refusing to clear rng because it was expected to be either already-cleared or still ` +
-        `${newRandomNumberGenerator}, but it was actually ${rng} [r5m8zzfcrx]`
-      )
-    }
-    rng = uninitializedRandomNumberGenerator();
-  }
+  return {
+    seed: numericSeed,
+    clear: () => {
+      if (rng === uninitializedRandomNumberGenerator()) {
+        return;
+      }
+      if (rng !== newRng) {
+        throw new Error(
+          `internal error: rng should be either uninitialized or newRng (${newRng}), ` +
+            `but got ${rng} [r5m8zzfcrx]`,
+        );
+      }
+      rng = uninitializedRandomNumberGenerator();
+    },
+  };
 }
 
 export class ThrowingRandomNumberGenerator implements RandomNumberGenerator {

@@ -6,7 +6,10 @@ import {
   getRandomElementFrom,
   MathRandomRandomNumberGenerator,
 } from "../src/random";
-import {PredeterminedRandomNumberGenerator,ThrowingRandomNumberGenerator} from './random.testing';
+import {
+  PredeterminedRandomNumberGenerator,
+  ThrowingRandomNumberGenerator,
+} from "./random.testing";
 
 describe("random.ts [mq8ewq77j9]", () => {
   describe("getRandomElementFrom() [pfzkdmpfjk]", () => {
@@ -57,16 +60,17 @@ describe("random.ts [mq8ewq77j9]", () => {
   });
 
   describe("AleaRandomNumberGenerator [f7mc2m6brj]", () => {
-    it("constructor with Alea argument should generate numbers from the underlying Alea", () => {
+    it("constructor(Alea)) should generate numbers from the given Alea", () => {
       const seed = Math.random();
-      const alea1 = new Alea(seed);
       const expectedNumbers: number[] = [];
-      for (let i = 0; i < 100; i++) {
-        expectedNumbers.push(alea1.next());
+      {
+        const alea = new Alea(seed);
+        for (let i = 0; i < 100; i++) {
+          expectedNumbers.push(alea.next());
+        }
       }
 
-      const alea2 = new Alea(seed);
-      const rng = new AleaRandomNumberGenerator(alea2);
+      const rng = new AleaRandomNumberGenerator(new Alea(seed));
       const actualNumbers: number[] = [];
       for (let i = 0; i < 100; i++) {
         actualNumbers.push(rng.next());

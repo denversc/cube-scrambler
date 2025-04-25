@@ -1,19 +1,9 @@
 import { allColors, Color } from "../src/cube";
 import { getRandomElementFrom, type RandomNumberGenerator } from "../src/random";
-import { rng as globalRng } from './random.testing'
+import { rng as globalRng } from "./random.testing";
 
 export function nonArrayValues(): unknown[] {
-  return [
-    null,
-    undefined,
-    1.2,
-    Symbol("re2x8pe7br"),
-    "nhypmz8h5j",
-    1234n,
-    false,
-    true,
-    {},
-  ];
+  return [null, undefined, 1.2, Symbol("re2x8pe7br"), "nhypmz8h5j", 1234n, false, true, {}];
 }
 
 export function randomColor(rng?: RandomNumberGenerator): Color {

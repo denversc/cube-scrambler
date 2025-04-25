@@ -1,12 +1,11 @@
 import { expect } from "chai";
-
-import { randomColor, rng, randomColorArray, nonArrayValues } from "./cube.testing";
-import { isCube, solved } from "../src/cube";
-import { AleaRandomNumberGenerator, getRandomElementFrom } from "../src/random";
 import { beforeEach } from "mocha";
 
-describe("cube.ts [g7em876hy4]", () => {
+import { isCube, solved } from "../src/cube";
+import { AleaRandomNumberGenerator, getRandomElementFrom } from "../src/random";
+import { nonArrayValues, randomColor, randomColorArray, rng } from "./cube.testing";
 
+describe("cube.ts [g7em876hy4]", () => {
   beforeEach(() => {
     const newRng = new AleaRandomNumberGenerator();
     rng = newRng;
