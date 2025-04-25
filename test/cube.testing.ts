@@ -1,5 +1,5 @@
 import type { Cube } from "../src/cube";
-import { allColors, Color,CUBE_LENGTH } from "../src/cube";
+import { allColors, Color, CUBE_LENGTH } from "../src/cube";
 import { getRandomElementFrom } from "../src/random";
 import { rng as rng } from "./random.testing";
 

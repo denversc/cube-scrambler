@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import type { Suite } from "mocha";
 
-import { copyCube,CUBE_LENGTH, isCube, isEqualCube, solved } from "../src/cube";
+import { copyCube, CUBE_LENGTH, isCube, isEqualCube, solved } from "../src/cube";
 import { getRandomElementFrom, getRandomIndexOf } from "../src/random";
-import { nonArrayValues, randomColor, randomColorArray,randomCube } from "./cube.testing";
+import { nonArrayValues, randomColor, randomColorArray, randomCube } from "./cube.testing";
 import { initializeRngForEachTest, rng } from "./random.testing";
 
 describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
@@ -109,6 +109,24 @@ describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
 
         const message = `i=${i} seed=${seed.seed} cube1=${cube1} cube2=${cube2}`;
         expect(isEqualCube(cube1, cube2), message).to.equal(false);
+      }
+    });
+  });
+
+  describe("copyCube() [tfmp5ansyt]", () => {
+    it("should return distinct objects", () => {
+      for (let i = 0; i < 100; i++) {
+        const cube = randomCube();
+        const cubeCopy = copyCube(cube);
+        expect(cubeCopy, `i=${i} seed=${seed.seed}`).to.not.equal(cube);
+      }
+    });
+
+    it("should return equal objects", () => {
+      for (let i = 0; i < 100; i++) {
+        const cube = randomCube();
+        const cubeCopy = copyCube(cube);
+        expect(cubeCopy, `i=${i} seed=${seed.seed}`).to.deep.equal(cube);
       }
     });
   });

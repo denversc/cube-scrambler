@@ -198,7 +198,7 @@ const allMoves: readonly Move[] = Object.freeze([
   "D", "D'", "D2",
 ]);
 
-export function isMove(value: unknown): value is Color {
+export function isMove(value: unknown): value is Move {
   return (allMoves as unknown[]).includes(value);
 }
 
