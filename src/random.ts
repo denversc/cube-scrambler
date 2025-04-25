@@ -1,4 +1,4 @@
-import {Alea} from './alea'
+import { Alea } from "./alea";
 
 export interface RandomNumberGenerator {
   /**
@@ -8,18 +8,20 @@ export interface RandomNumberGenerator {
 }
 
 export function getRandomElementFrom<T>(elements: readonly T[], rng: RandomNumberGenerator): T {
-    const elementsLength = elements.length;
-    if (elementsLength === 0) {
-        throw new Error("elements must be empty (error code ggr47yr5be)");
-    }
-    const randomNumber = rng.next();
-    if (randomNumber < 0 || randomNumber >= 1) {
-        throw new Error(`RandomNumberGenerator ${rng} produced an out-of-range number: ${randomNumber}`
-        + ` (must be greater than or equal to zero and strictly less than 1) ` +
-            `(error code xy7zr5xkxr)`);
-    }
-    const elementIndex = Math.floor(elementsLength * randomNumber);
-    return elements[elementIndex]!;
+  const elementsLength = elements.length;
+  if (elementsLength === 0) {
+    throw new Error("elements must be empty (error code ggr47yr5be)");
+  }
+  const randomNumber = rng.next();
+  if (randomNumber < 0 || randomNumber >= 1) {
+    throw new Error(
+      `RandomNumberGenerator ${rng} produced an out-of-range number: ${randomNumber}` +
+        ` (must be greater than or equal to zero and strictly less than 1) ` +
+        `(error code xy7zr5xkxr)`,
+    );
+  }
+  const elementIndex = Math.floor(elementsLength * randomNumber);
+  return elements[elementIndex]!;
 }
 
 export class MathRandomRandomNumberGenerator implements RandomNumberGenerator {
@@ -29,9 +31,7 @@ export class MathRandomRandomNumberGenerator implements RandomNumberGenerator {
 }
 
 export class AleaRandomNumberGenerator implements RandomNumberGenerator {
-
-  constructor(readonly alea: Alea) {
-  }
+  constructor(readonly alea: Alea) {}
 
   next(): number {
     return this.alea.next();

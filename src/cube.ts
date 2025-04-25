@@ -1,19 +1,25 @@
-import { type RandomNumberGenerator, getRandomElementFrom, MathRandomRandomNumberGenerator } from './random';
+import {
+  type RandomNumberGenerator,
+  getRandomElementFrom,
+  MathRandomRandomNumberGenerator,
+} from "./random";
 
 const CUBE_LENGTH = 54;
 
 export function solved(): Cube {
+  // prettier-ignore
   const cube: Cube = Object.seal([
-    "green", "green","green","green","green","green","green","green","green",
-    "orange", "orange","orange","orange","orange","orange","orange","orange","orange",
-    "blue","blue","blue","blue","blue","blue","blue","blue","blue",
-    "red","red","red","red","red","red","red","red","red",
-    "white", "white","white","white","white","white","white","white","white",
-    "yellow", "yellow","yellow","yellow","yellow","yellow","yellow","yellow","yellow",
+    "green", "green", "green", "green", "green", "green", "green", "green", "green",
+    "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange",
+    "blue", "blue", "blue", "blue", "blue", "blue", "blue", "blue", "blue",
+    "red", "red", "red", "red", "red", "red", "red", "red", "red",
+    "white", "white", "white", "white", "white", "white", "white", "white", "white",
+    "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow",
   ]);
   if (cube.length !== CUBE_LENGTH) {
-    throw new Error("internal error y9wf7jvh2q: "
-    + `cube.length==${cube.length}, but expected ${CUBE_LENGTH}`);
+    throw new Error(
+      `internal error y9wf7jvh2q: cube.length==${cube.length}, but expected ${CUBE_LENGTH}`,
+    );
   }
   return cube;
 }
@@ -26,13 +32,15 @@ export interface ScrambleOptions {
 export function scramble(cube: Cube, options?: ScrambleOptions): void {
   const numMoves = options?.numMoves ?? 25;
   if (numMoves < 0) {
-    throw new Error(`invalid number of moves: ${numMoves} `
-        + `(must be greater than or equal to 0) `
-        + `(error code a3phx79vb4)`);
+    throw new Error(
+      `invalid number of moves: ${numMoves} ` +
+        `(must be greater than or equal to 0) ` +
+        `(error code a3phx79vb4)`,
+    );
   }
   const rng = options?.rng ?? new MathRandomRandomNumberGenerator();
 
-  for (let i=0; i<numMoves; i++) {
+  for (let i = 0; i < numMoves; i++) {
     const move = getRandomElementFrom(allMoves, rng);
     performMove(cube, move);
   }
@@ -72,13 +80,23 @@ export function moveR(cube: Cube): void {
   rotate(cube, 28, 32, 34, 30);
 }
 
-function swap<K extends number>(cube: Cube, index1: K extends keyof Cube ? K : never, index2: K extends keyof Cube ? K : never): void {
+function swap<K extends number>(
+  cube: Cube,
+  index1: K extends keyof Cube ? K : never,
+  index2: K extends keyof Cube ? K : never,
+): void {
   const color = cube[index1];
   cube[index1] = cube[index2];
   cube[index2] = color;
 }
 
-function rotate<K extends number>(cube: Cube, index1: K extends keyof Cube ? K : never, index2: K extends keyof Cube ? K : never, index3: K extends keyof Cube ? K : never, index4: K extends keyof Cube ? K : never): void {
+function rotate<K extends number>(
+  cube: Cube,
+  index1: K extends keyof Cube ? K : never,
+  index2: K extends keyof Cube ? K : never,
+  index3: K extends keyof Cube ? K : never,
+  index4: K extends keyof Cube ? K : never,
+): void {
   const index4Color = cube[index4];
   cube[index4] = cube[index3];
   cube[index3] = cube[index2];
@@ -157,7 +175,12 @@ export function moveD2(cube: Cube): void {
 export type Color = "green" | "red" | "orange" | "blue" | "white" | "yellow";
 
 const allColors: readonly Color[] = Object.freeze([
-  "green", "red", "orange", "blue", "white", "yellow"
+  "green",
+  "red",
+  "orange",
+  "blue",
+  "white",
+  "yellow",
 ]);
 
 export function isColor(value: unknown): value is Color {
@@ -166,27 +189,30 @@ export function isColor(value: unknown): value is Color {
 
 export type Side = "front" | "left" | "right" | "back" | "top" | "bottom";
 
+// prettier-ignore
 export type Move =
-    | "R" | "R'" | "R2"
-    | "L" | "L'" | "L2"
-    | "F" | "F'" | "F2"
-    | "B" | "B'" | "B2"
-    | "U" | "U'" | "U2"
-    | "D" | "D'" | "D2"
+  | "R" | "R'" | "R2"
+  | "L" | "L'" | "L2"
+  | "F" | "F'" | "F2"
+  | "B" | "B'" | "B2"
+  | "U" | "U'" | "U2"
+  | "D" | "D'" | "D2";
 
+// prettier-ignore
 const allMoves: readonly Move[] = Object.freeze([
-    "R" , "R'" , "R2",
-    "L" , "L'" , "L2",
-    "F" , "F'" , "F2",
-    "B" , "B'" , "B2",
-    "U" , "U'" , "U2",
-    "D" , "D'" , "D2",
+  "R", "R'", "R2",
+  "L", "L'", "L2",
+  "F", "F'", "F2",
+  "B", "B'", "B2",
+  "U", "U'", "U2",
+  "D", "D'", "D2",
 ]);
 
 export function isMove(value: unknown): value is Color {
   return (allMoves as unknown[]).includes(value);
 }
 
+// prettier-ignore
 type Cube = [
   // 0-8: Front/Green face
   Color, Color, Color,    // 0,  1,  2: top row left to right
@@ -203,7 +229,7 @@ type Cube = [
   Color, "blue", Color,   // 21,  22,  23: middle row left to right
   Color, Color, Color,    // 24,  25,  26: top row left to right
 
-  // Indices 27-35: Right/Red face
+  // 27-35: Right/Red face
   Color, Color, Color,    // 27,  28,  29: top row left to right
   Color, "red", Color,    // 30,  31,  32: middle row left to right
   Color, Color, Color,    // 33,  34,  35: bottom row left to right
@@ -219,11 +245,11 @@ type Cube = [
   Color, Color, Color,    // 51,  52,  53: back row left to right
 ];
 
-export function areCubesEqual(cube1: Cube, cube2: Cube): boolean {
+export function isEqualCube(cube1: Cube, cube2: Cube): boolean {
   if (cube1.length !== cube2.length) {
     return false;
   }
-  for (let i=0; i<cube1.length; i++) {
+  for (let i = 0; i < cube1.length; i++) {
     if (cube1[i] !== cube2[i]) {
       return false;
     }
@@ -232,14 +258,14 @@ export function areCubesEqual(cube1: Cube, cube2: Cube): boolean {
 }
 
 export function isCube(value: unknown): value is Cube {
-  if (! Array.isArray(value)) {
+  if (!Array.isArray(value)) {
     return false;
   }
   if (value.length !== CUBE_LENGTH) {
     return false;
   }
-  for (let i=0; i<value.length; i++) {
-    if (! isColor(value[i])) {
+  for (let i = 0; i < value.length; i++) {
+    if (!isColor(value[i])) {
       return false;
     }
   }

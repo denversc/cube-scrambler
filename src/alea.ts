@@ -36,9 +36,9 @@ export class Alea {
   constructor(seed: any) {
     const mash = Mash();
 
-    this.s0 = mash(' ');
-    this.s1 = mash(' ');
-    this.s2 = mash(' ');
+    this.s0 = mash(" ");
+    this.s1 = mash(" ");
+    this.s2 = mash(" ");
     this.s0 -= mash(seed);
     if (this.s0 < 0) {
       this.s0 += 1;
@@ -55,9 +55,7 @@ export class Alea {
 
   /** Returns a random number in the half-open range [0..1). */
   next(): number {
-    return (
-      this._next() + ((this._next() * 0x200000) | 0) * 1.1102230246251565e-16
-    ); // 2^-53
+    return this._next() + ((this._next() * 0x200000) | 0) * 1.1102230246251565e-16; // 2^-53
   }
 
   private _next(): number {

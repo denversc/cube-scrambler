@@ -15,10 +15,24 @@
   },
   "license": "Apache-2.0",
   "type": "commonjs",
+  "prettier": {
+    "arrowParens": "avoid",
+    "quoteProps": "preserve",
+    "singleQuote": false,
+    "trailingComma": "all"
+  },
+  "mocha": {
+    "extension": "ts",
+    "require": "test/mocha_ts_node_register.js",
+    "spec": "test/**/*.test.ts",
+    "timeout": 60000
+  },
   "scripts": {
-    "compile": "tsc -b",
-    "test": "mocha",
-    "test-ci": "mocha --exit --check-leaks --fail-zero --forbid-only --forbid-pending"
+    "mocha:ci": "mocha --exit --check-leaks --fail-zero --forbid-only --forbid-pending",
+    "mocha": "mocha",
+    "prettier:check": "prettier --check .",
+    "prettier": "prettier --write .",
+    "tsc": "tsc -b"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",
@@ -27,6 +41,7 @@
     "@types/node": "^22.14.1",
     "chai": "^4.5.0",
     "mocha": "^10.8.2",
+    "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
