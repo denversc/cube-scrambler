@@ -1,7 +1,7 @@
 import {
-  type RandomNumberGenerator,
   getRandomElementFrom,
   MathRandomRandomNumberGenerator,
+  type RandomNumberGenerator,
 } from "./random";
 
 const CUBE_LENGTH = 54;
