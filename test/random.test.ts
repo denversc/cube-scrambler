@@ -1,30 +1,70 @@
 import { expect } from "chai";
+import type { Suite } from "mocha";
 
 import { Alea } from "../src/alea";
 import {
   AleaRandomNumberGenerator,
   getRandomElementFrom,
+  getRandomIndexOf,
   MathRandomRandomNumberGenerator,
 } from "../src/random";
 import {
+  initializeRngForEachTest,
   PredeterminedRandomNumberGenerator,
+  rng,
   ThrowingRandomNumberGenerator,
 } from "./random.testing";
 
-describe("random.ts [mq8ewq77j9]", () => {
+describe("random.test.ts [mq8ewq77j9]", function (this: Suite) {
+  initializeRngForEachTest(this);
+
   describe("getRandomElementFrom() [pfzkdmpfjk]", () => {
-    it("should throw on empty elements", () => {
+    it("should throw on empty array", () => {
       const block = () => getRandomElementFrom([], new ThrowingRandomNumberGenerator());
       expect(block).to.throw(/\bggr47yr5be\b/g);
       expect(block).to.throw(/\bempty\b/gi);
     });
 
-    it("should return only element from a 1-element list", () => {
+    it("should return the only element from a 1-element array", () => {
       const element = Symbol("nshyjnkcvv");
       const rng = new MathRandomRandomNumberGenerator();
       for (let i = 0; i < 100; i++) {
         expect(getRandomElementFrom([element], rng), `i=${i}`).to.equal(element);
       }
+    });
+
+    it("should return elements corresponding to the generated random numbers", () => {
+      const predeterminedRandomNumbers = [Number.MIN_VALUE, 0.33, 0.66, 1 - Number.EPSILON];
+      const rng = new PredeterminedRandomNumberGenerator(predeterminedRandomNumbers);
+      const values = Object.freeze([
+        "p46s4mknjp",
+        "ey4bbmq2hf",
+        "ch6n4kh3j7",
+        "sxgw8g5xcf",
+        "aq2wd394am",
+      ]);
+      const producedValues1: string[] = [];
+      for (let i = 0; i < predeterminedRandomNumbers.length; i++) {
+        producedValues1.push(getRandomElementFrom(values, rng));
+      }
+      const producedValues2: string[] = [];
+      for (let i = 0; i < predeterminedRandomNumbers.length; i++) {
+        producedValues2.push(getRandomElementFrom(values, rng));
+      }
+      expect(producedValues1).to.deep.equal(producedValues2);
+      expect(producedValues1.length, "producedValues1.length").to.be.greaterThan(0);
+    });
+  });
+
+  describe("getRandomIndexOf() [c5fb9twr4k]", () => {
+    it("should throw on empty array", () => {
+      const block = () => getRandomIndexOf([], new ThrowingRandomNumberGenerator());
+      expect(block).to.throw(/\bggr47yr5be\b/g);
+      expect(block).to.throw(/\bempty\b/gi);
+    });
+
+    it("should return 0, the only valid index, for a 1-element array", () => {
+      expect(getRandomIndexOf([42], rng)).to.equal(0);
     });
 
     it("should return element corresponding to the generated random numbers", () => {

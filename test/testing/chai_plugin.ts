@@ -77,7 +77,7 @@ function iterableChaiProperty(this: Chai.AssertionStatic): void {
   );
 }
 
-function register(chai: Chai.ChaiStatic, util: Chai.ChaiUtils): void {
+function chaiPlugin(chai: Chai.ChaiStatic, util: Chai.ChaiUtils): void {
   if (registrations.has(chai)) {
     return;
   }
@@ -87,4 +87,4 @@ function register(chai: Chai.ChaiStatic, util: Chai.ChaiUtils): void {
   util.addProperty(Assertion.prototype, "distinct", distinctChaiProperty);
 }
 
-export default register;
+export default chaiPlugin;

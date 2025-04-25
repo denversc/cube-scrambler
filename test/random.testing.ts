@@ -1,3 +1,5 @@
+import type { Suite } from "mocha";
+
 import { AleaRandomNumberGenerator, type RandomNumberGenerator } from "../src/random";
 
 const UNINITIALIZED = Symbol("UNINITIALIZED wyn2qpvbnf");
@@ -76,4 +78,31 @@ export class PredeterminedRandomNumberGenerator implements RandomNumberGenerator
     this.#index++;
     return value;
   }
+}
+
+export interface HasSeed {
+  seed: number;
+}
+
+class HasSeedImpl implements HasSeed {
+  public initResult?: InitializeRngResult;
+
+  get seed(): number {
+    return this.initResult!.seed;
+  }
+}
+
+export function initializeRngForEachTest(suite: Suite, seed?: number): HasSeed {
+  const returnValue = new HasSeedImpl();
+
+  suite.beforeEach(() => {
+    returnValue.initResult = initializeRng(seed);
+  });
+
+  suite.afterEach(() => {
+    returnValue.initResult?.clear();
+    delete returnValue.initResult;
+  });
+
+  return returnValue;
 }

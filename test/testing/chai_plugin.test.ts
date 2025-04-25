@@ -1,12 +1,11 @@
-import * as chai from "chai";
-import { expect } from "chai";
+import { expect, use } from "chai";
 import { type TestFunction } from "mocha";
 
 import { default as myChaiPlugin } from "./chai_plugin";
 
-describe("chai_plugin.ts [tvefkfakz2]", () => {
+describe("chai_plugin.test.ts [tvefkfakz2]", () => {
   before(() => {
-    chai.use(myChaiPlugin);
+    use(myChaiPlugin);
   });
 
   describe("iterable [v2ztqjq5q2]", () => {

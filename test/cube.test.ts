@@ -1,15 +1,13 @@
 import { expect } from "chai";
-import { beforeEach } from "mocha";
+import type { Suite } from "mocha";
 
 import { isCube, solved } from "../src/cube";
-import { AleaRandomNumberGenerator, getRandomElementFrom } from "../src/random";
-import { nonArrayValues, randomColor, randomColorArray, rng } from "./cube.testing";
+import { getRandomElementFrom } from "../src/random";
+import { nonArrayValues, randomColor, randomColorArray } from "./cube.testing";
+import { initializeRngForEachTest, rng } from "./random.testing";
 
-describe("cube.ts [g7em876hy4]", () => {
-  beforeEach(() => {
-    const newRng = new AleaRandomNumberGenerator();
-    rng = newRng;
-  });
+describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
+  const seed = initializeRngForEachTest(this);
 
   describe("isCube() [pvbdrgebe8]", () => {
     it("should return true on a solved cube", () => {
@@ -72,7 +70,7 @@ describe("cube.ts [g7em876hy4]", () => {
         actualResults.push({ value, returnValue: isCube(value) });
         expectedResults.push({ value, returnValue: false });
       }
-      expect(actualResults).to.deep.equal(expectedResults);
+      expect(actualResults, `seed=${seed.seed}`).to.deep.equal(expectedResults);
     });
   });
 });
