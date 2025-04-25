@@ -80,16 +80,6 @@ export function moveR(cube: Cube): void {
   rotate(cube, 28, 32, 34, 30);
 }
 
-function swap<K extends number>(
-  cube: Cube,
-  index1: K extends keyof Cube ? K : never,
-  index2: K extends keyof Cube ? K : never,
-): void {
-  const color = cube[index1];
-  cube[index1] = cube[index2];
-  cube[index2] = color;
-}
-
 function rotate<K extends number>(
   cube: Cube,
   index1: K extends keyof Cube ? K : never,
@@ -105,71 +95,71 @@ function rotate<K extends number>(
 }
 
 export function moveRPrime(cube: Cube): void {
-  throw new Error("moveRPrime() is not yet implemented (error code nbfy9b5maj)");
+  throw new Error(`moveRPrime() is not yet implemented cube=${cube} (error code nbfy9b5maj)`);
 }
 
 export function moveR2(cube: Cube): void {
-  throw new Error("moveR2() is not yet implemented (error code xea8xd83ba)");
+  throw new Error(`moveR2() is not yet implemented cube=${cube} (error code xea8xd83ba)`);
 }
 
 export function moveL(cube: Cube): void {
-  throw new Error("moveL() is not yet implemented (error code df2t5ctgc3)");
+  throw new Error(`moveL() is not yet implemented cube=${cube} (error code df2t5ctgc3)`);
 }
 
 export function moveLPrime(cube: Cube): void {
-  throw new Error("moveLPrime() is not yet implemented (error code kfmnjg3t39)");
+  throw new Error(`moveLPrime() is not yet implemented cube=${cube} (error code kfmnjg3t39)`);
 }
 
 export function moveL2(cube: Cube): void {
-  throw new Error("moveL2() is not yet implemented (error code qfkn4x4q9k)");
+  throw new Error(`moveL2() is not yet implemented cube=${cube} (error code qfkn4x4q9k)`);
 }
 
 export function moveF(cube: Cube): void {
-  throw new Error("moveF() is not yet implemented (error code cr6f4nbc9a)");
+  throw new Error(`moveF() is not yet implemented cube=${cube} (error code cr6f4nbc9a)`);
 }
 
 export function moveFPrime(cube: Cube): void {
-  throw new Error("moveFPrime() is not yet implemented (error code ydgwbqydzn)");
+  throw new Error(`moveFPrime() is not yet implemented cube=${cube} (error code ydgwbqydzn)`);
 }
 
 export function moveF2(cube: Cube): void {
-  throw new Error("moveF2() is not yet implemented (error code yztts76wc4)");
+  throw new Error(`moveF2() is not yet implemented cube=${cube} (error code yztts76wc4)`);
 }
 
 export function moveB(cube: Cube): void {
-  throw new Error("moveB() is not yet implemented (error code rswdt7dtzv)");
+  throw new Error(`moveB() is not yet implemented cube=${cube} (error code rswdt7dtzv)`);
 }
 
 export function moveBPrime(cube: Cube): void {
-  throw new Error("moveBPrime() is not yet implemented (error code ppzawshv5k)");
+  throw new Error(`moveBPrime() is not yet implemented cube=${cube} (error code ppzawshv5k)`);
 }
 
 export function moveB2(cube: Cube): void {
-  throw new Error("moveB2() is not yet implemented (error code bx9pvs73nr)");
+  throw new Error(`moveB2() is not yet implemented cube=${cube} (error code bx9pvs73nr)`);
 }
 
 export function moveU(cube: Cube): void {
-  throw new Error("moveU() is not yet implemented (error code zz3fsr8ahf)");
+  throw new Error(`moveU() is not yet implemented cube=${cube} (error code zz3fsr8ahf)`);
 }
 
 export function moveUPrime(cube: Cube): void {
-  throw new Error("moveUPrime() is not yet implemented (error code yrw9nd85ze)");
+  throw new Error(`moveUPrime() is not yet implemented cube=${cube} (error code yrw9nd85ze)`);
 }
 
 export function moveU2(cube: Cube): void {
-  throw new Error("moveU2() is not yet implemented (error code nx45f9f2xg)");
+  throw new Error(`moveU2() is not yet implemented cube=${cube} (error code nx45f9f2xg)`);
 }
 
 export function moveD(cube: Cube): void {
-  throw new Error("moveD() is not yet implemented (error code vyqwck5byt)");
+  throw new Error(`moveD() is not yet implemented cube=${cube} (error code vyqwck5byt)`);
 }
 
 export function moveDPrime(cube: Cube): void {
-  throw new Error("moveDPrime() is not yet implemented (error code xz4548dxwg)");
+  throw new Error(`moveDPrime() is not yet implemented cube=${cube} (error code xz4548dxwg)`);
 }
 
 export function moveD2(cube: Cube): void {
-  throw new Error("moveD2() is not yet implemented (error code jp2rhyczas)");
+  throw new Error(`moveD2() is not yet implemented cube=${cube} (error code jp2rhyczas)`);
 }
 
 export type Color = "green" | "red" | "orange" | "blue" | "white" | "yellow";
