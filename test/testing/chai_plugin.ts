@@ -6,7 +6,17 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Chai {
     interface Assertion {
+      /**
+       * Asserts that an object conforms to the "iterable protocol".
+       * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
+       */
       iterable: Assertion;
+
+      /**
+       * Asserts that an iterable object contains distinct elements.
+       * Elements are compared for equality using the "Same-value-zero equality" method.
+       * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Equality_comparisons_and_sameness#same-value-zero_equality
+       */
       distinct: Assertion;
     }
   }
@@ -49,7 +59,7 @@ function distinctChaiProperty(this: Chai.AssertionStatic): void {
 
   this.assert(
     duplicateElements.length === 0,
-    `expected #{this} to contain distinct elements, but got ${duplicateElements.length}` +
+    `expected #{this} to contain distinct elements, but got ${duplicateElements.length} ` +
       `repeated elements: ${makeDuplicateElementsStr(duplicateElements)} [z3g86b6p8m]`,
     `expected #{this} to contain at least one non-distinct element, ` +
       `but all elements were distinct [k4gtkwhx59]`,
