@@ -1,38 +1,16 @@
 import { expect } from "chai";
 
-import { allColors, Color, isCube, solved } from "../src/cube";
+import { randomColor, rng, randomColorArray, nonArrayValues } from "./cube.testing";
+import { isCube, solved } from "../src/cube";
 import { AleaRandomNumberGenerator, getRandomElementFrom } from "../src/random";
+import { beforeEach } from "mocha";
 
 describe("cube.ts [g7em876hy4]", () => {
-  const rng = new AleaRandomNumberGenerator();
-  const nonArrayValues = [
-    null,
-    undefined,
-    1.2,
-    Symbol("re2x8pe7br"),
-    "nhypmz8h5j",
-    1234n,
-    false,
-    true,
-    {},
-  ];
 
-  function getRandomColor(): Color {
-    return getRandomElementFrom(allColors, rng);
-  }
-
-  function randomColorArray(length: number): Color[] {
-    if (length < 0) {
-      throw new Error(
-        `randomColorArray() called with invalid length: ${length} (error code ka3tetgf8v)`,
-      );
-    }
-    const array: Color[] = [];
-    for (let i = 0; i < length; i++) {
-      array.push(getRandomColor());
-    }
-    return array;
-  }
+  beforeEach(() => {
+    const newRng = new AleaRandomNumberGenerator();
+    rng = newRng;
+  });
 
   describe("isCube() [pvbdrgebe8]", () => {
     it("should return true on a solved cube", () => {
@@ -43,7 +21,7 @@ describe("cube.ts [g7em876hy4]", () => {
     it("should return true on a scrambled cube", () => {
       const cube = solved();
       for (let i = 0; i < cube.length; i++) {
-        cube[i] = getRandomColor();
+        cube[i] = randomColor();
       }
       expect(isCube(cube), `cube=${cube}`).to.equal(true);
     });
@@ -58,7 +36,7 @@ describe("cube.ts [g7em876hy4]", () => {
       type Result = { value: unknown; returnValue: boolean };
       const actualResults: Array<Result> = [];
       const expectedResults: Array<Result> = [];
-      for (const value of nonArrayValues) {
+      for (const value of nonArrayValues()) {
         actualResults.push({ value, returnValue: isCube(value) });
         expectedResults.push({ value, returnValue: false });
       }
@@ -91,7 +69,7 @@ describe("cube.ts [g7em876hy4]", () => {
       for (let i = 0; i < 100; i++) {
         const value: unknown[] = solved();
         const index = Math.floor(rng.next() * value.length);
-        value[index] = getRandomElementFrom(nonArrayValues, rng);
+        value[index] = getRandomElementFrom(nonArrayValues(), rng);
         actualResults.push({ value, returnValue: isCube(value) });
         expectedResults.push({ value, returnValue: false });
       }

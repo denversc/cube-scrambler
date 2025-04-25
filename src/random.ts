@@ -30,11 +30,21 @@ export class MathRandomRandomNumberGenerator implements RandomNumberGenerator {
   }
 }
 
+function aleaFromAleaOrSeed(aleaOrSeed?: Alea | number): Alea {
+  if (typeof aleaOrSeed === 'undefined') {
+    return new Alea(Math.random());
+  } else if (typeof aleaOrSeed === 'number') {
+    return new Alea(aleaOrSeed);
+  } else {
+    return aleaOrSeed;
+  }
+}
+
 export class AleaRandomNumberGenerator implements RandomNumberGenerator {
   readonly alea: Alea;
 
-  constructor(alea?: Alea) {
-    this.alea = alea ?? new Alea(Math.random());
+  constructor(aleaOrSeed?: Alea | number) {
+    this.alea = aleaFromAleaOrSeed(aleaOrSeed);
   }
 
   next(): number {
