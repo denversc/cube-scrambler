@@ -6,5 +6,5 @@
 
   "references": [{ "path": "../src" }],
 
-  "include": ["*"]
+  "include": ["**/*"]
 }

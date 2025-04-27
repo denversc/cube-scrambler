@@ -31,6 +31,21 @@ jobs:
 
       - run: npm run tsc
 
+  mocha:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.E5VFCV_NODE_VERSION }}
+
+      - run: npm clean-install
+
+      - run: npm run mocha:ci
+
   prettier:
     runs-on: ubuntu-latest
     steps:
