@@ -2,6 +2,7 @@
   "files": [],
   "include": [],
   "references": [
+    { "path": "./mocha" },
     { "path": "./src" },
     { "path": "./src/browser" },
     { "path": "./src/node" },
