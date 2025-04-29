@@ -1,13 +1,49 @@
-import fs from "node:fs/promises";
-import * as process from "node:process";
+import { mkdtemp } from "node:fs/promises";
+import path from "node:path";
 
 import { expect } from "chai";
-import type { Browser } from "puppeteer";
+import type { Browser, BrowserContext, Page } from "puppeteer";
 import puppeteer from "puppeteer";
-import toml from "toml";
+import { rimraf } from "rimraf";
+import signale from "signale";
 
-describe("integration.test.ts [j3f27kxwtt]", async () => {
-  const config = await loadIntegrationTestConfig();
+import { esbuild } from "./integration.testing";
+
+describe("integration.test.ts [j3f27kxwtt]", () => {
+  let tempDir: string;
+  before(async () => {
+    tempDir = await mkdtemp("cube-scrambler-mvpnyf386e");
+    signale.note(`Created temporary directory: ${tempDir}`);
+  });
+
+  after(async () => {
+    const tempDirLocal = tempDir;
+    // @ts-expect-error intentionally violate typing
+    tempDir = undefined;
+    if (tempDirLocal) {
+      signale.note(`Deleting temporary directory: ${tempDirLocal}`);
+      await rimraf(tempDirLocal);
+    }
+  });
+
+  before(async () => {
+    await esbuild({ ui: "html", startTrigger: "load", destDir: path.join(tempDir, "html_load") });
+    await esbuild({
+      ui: "console",
+      startTrigger: "load",
+      destDir: path.join(tempDir, "console_load"),
+    });
+    await esbuild({
+      ui: "html",
+      startTrigger: "button",
+      destDir: path.join(tempDir, "html_button"),
+    });
+    await esbuild({
+      ui: "console",
+      startTrigger: "button",
+      destDir: path.join(tempDir, "console_button"),
+    });
+  });
 
   let browser: Browser;
 
@@ -22,97 +58,31 @@ describe("integration.test.ts [j3f27kxwtt]", async () => {
     await localBrowser?.close();
   });
 
-  if (config.reporter === "html") {
-    it("html reporter [m8zbx9643t]", async () => {
-      const context = await browser.createBrowserContext();
-      try {
-        const page = await context.newPage();
-        await page.goto(config.url);
-        const divHtml = await page.$eval("#mocha", div => div.innerHTML);
-        expect(divHtml).is.not.empty;
-      } finally {
-        await context.close();
-      }
-    });
-  }
+  let browserContext: BrowserContext;
+  let page: Page;
+
+  beforeEach(async () => {
+    browserContext = await browser.createBrowserContext();
+    page = await browserContext.newPage();
+    await page.goto("http://localhost:9080");
+  });
+
+  afterEach(async () => {
+    const localBrowserContext = browserContext;
+    // @ts-expect-error intentionally violate typing
+    browserContext = undefined;
+    // @ts-expect-error intentionally violate typing
+    page = undefined;
+    await localBrowserContext?.close();
+  });
+
+  it("reporter=html startTrigger=load [m8zbx9643t]", async () => {
+    const divHtml = await page.$eval("#mocha", div => div.innerHTML);
+    expect(divHtml).is.not.empty;
+  });
+
+  it("reporter=console startTrigger=load [f4d34rf57e]", async () => {
+    const divHtml = await page.$eval("#mocha", div => div.innerHTML);
+    expect(divHtml).is.not.empty;
+  });
 });
-
-interface IntegrationTestConfig {
-  url: string;
-  reporter: "html" | "console";
-  startTrigger: "button" | "load";
-}
-
-async function loadIntegrationTestConfig(file?: string): Promise<IntegrationTestConfig> {
-  if (typeof file === "undefined") {
-    const envVarName = "INTEGRATION_TEST_CONFIG_FILE_GTAT4A7YGA";
-    const configFile = process.env[envVarName];
-    if (!configFile) {
-      throw new Error(
-        `environment variable ${envVarName} was not set; ` +
-          `set it to the path of the integration test configuration toml file [mbvappnqhw]`,
-      );
-    }
-    return loadIntegrationTestConfig(configFile);
-  }
-
-  const fileContents = await fs.readFile(file, { encoding: "utf-8" });
-  const config = toml.parse(fileContents) as Record<string, unknown>;
-
-  const propertyErrors: Array<{ name: string; message: string }> = [];
-  const presentProperties = new Set<string>();
-  for (const propertyName of ["url", "reporter", "startTrigger"]) {
-    if (Object.hasOwn(config, propertyName)) {
-      presentProperties.add(propertyName);
-    } else {
-      propertyErrors.push({
-        name: propertyName,
-        message: "property is not specified, but is required [xs8wtxnkmt]",
-      });
-    }
-  }
-
-  const stringProperties = new Set<string>();
-  for (const propertyName of presentProperties) {
-    const value = config[propertyName];
-    if (typeof value === "string") {
-      stringProperties.add(propertyName);
-    } else {
-      propertyErrors.push({
-        name: propertyName,
-        message: `property must be a string, but got ${typeof value}: ${value} [s93pm4se65]`,
-      });
-    }
-  }
-
-  const validValuesByPropertyName = new Map<string, readonly unknown[]>([
-    ["reporter", ["console", "html"]],
-    ["startTrigger", ["button", "load"]],
-  ]);
-  for (const [propertyName, validPropertyValues] of validValuesByPropertyName) {
-    if (!stringProperties.has(propertyName)) {
-      continue;
-    }
-    const propertyValue = config[propertyName];
-    if (!validPropertyValues.includes(propertyValue)) {
-      propertyErrors.push({
-        name: propertyName,
-        message:
-          `property has an invalid value: ${propertyValue} ` +
-          `(valid values: ${validPropertyValues.join(", ")}) [znfqhpayx7]`,
-      });
-    }
-  }
-
-  if (propertyErrors.length > 0) {
-    throw new Error(
-      `parsing integration test configuration file failed: ${file}; ` +
-        `${propertyErrors.length} errors encountered: ` +
-        propertyErrors
-          .map((error, errorIndex) => `${errorIndex + 1}: ${error.name}: ${error.message}`)
-          .join(", "),
-    );
-  }
-
-  return config as unknown as IntegrationTestConfig;
-}
