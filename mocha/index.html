@@ -5,21 +5,28 @@
     <title>cube-scrambler mocha tests</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="mocha.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.svg" />
   </head>
   <body>
     <h1>cube-scrambler mocha tests</h1>
     <div id="mocha"></div>
 
     <script src="mocha.js"></script>
-    <script src="mocha_custom_reporter.js"></script>
+
+    {% if custom_reporter_js_url %}
+    <script src="{{ custom_reporter_js_url }}"></script>
+    {% endif %}
 
     <script>
       mocha.setup("bdd");
       mocha.checkLeaks();
-      mocha.reporter(mocha_custom_reporter_s2he8g3fbt.MochaCustomReporter);
     </script>
 
-    <script src="mocha_custom_reporter.js"></script>
+    {% if custom_reporter_constructor %}
+    <script>
+      mocha.reporter({{ custom_reporter_constructor }});
+    </script>
+    {% endif %}
 
     <script src="cube.test.js"></script>
     <script src="random.test.js"></script>

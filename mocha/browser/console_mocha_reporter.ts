@@ -16,7 +16,7 @@ const {
 } = Mocha.Runner.constants;
 
 // noinspection JSUnusedGlobalSymbols
-export class MochaCustomReporter {
+export class ConsoleMochaReporter {
   readonly #log: (...data: unknown[]) => unknown;
 
   // noinspection JSUnusedGlobalSymbols
