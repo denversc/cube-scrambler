@@ -26,6 +26,16 @@ async function main(): Promise<void> {
     "--format=iife",
     "--external:mocha",
   );
+
+  runEsbuild(
+    "--bundle",
+    "mocha/browser/mocha_custom_reporter.ts",
+    "--outdir=build/mocha",
+    "--sourcemap",
+    "--platform=browser",
+    "--format=iife",
+    "--global-name=mocha_custom_reporter_s2he8g3fbt",
+  );
 }
 
 function copyFile(srcPath: string, destPath: string): void {
