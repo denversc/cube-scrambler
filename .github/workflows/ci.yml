@@ -76,6 +76,62 @@ jobs:
 
       - run: npm run lint:check
 
+  mocha-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.E5VFCV_NODE_VERSION }}
+
+      - run: npm clean-install
+
+      - id: mocha_browser_build_default
+        continue-on-error: true
+        run: npm run mocha:browser:build
+
+      - id: mocha_browser_build_console
+        continue-on-error: true
+        run: npm run mocha:browser:build -- --console
+
+      - id: mocha_browser_build_html
+        continue-on-error: true
+        run: npm run mocha:browser:build -- --html
+
+      - id: mocha_browser_build_button
+        continue-on-error: true
+        run: npm run mocha:browser:build -- --button
+
+      - id: mocha_browser_build_load
+        continue-on-error: true
+        run: npm run mocha:browser:build -- --load
+
+      - name: check results
+        run: |
+          set -euo pipefail
+
+          failcount=0
+
+          function process_result {
+            if [[ $2 == "success" ]] ; then
+              echo "$1 ✅ $2"
+            else
+              echo "$1 ❌ $2"
+              failcount=$(( failcount + 1 ))
+            fi
+          }
+
+          process_result 'mocha_browser_build_default' '${{ steps.mocha_browser_build_default.outcome }}'
+          process_result 'mocha_browser_build_console' '${{ steps.mocha_browser_build_console.outcome }}'
+          process_result 'mocha_browser_build_html' '${{ steps.mocha_browser_build_html.outcome }}'
+          process_result 'mocha_browser_build_button' '${{ steps.mocha_browser_build_button.outcome }}'
+          process_result 'mocha_browser_build_load' '${{ steps.mocha_browser_build_load.outcome }}'
+
+          exit $failcount
+
   actionlint:
     runs-on: ubuntu-latest
     steps:

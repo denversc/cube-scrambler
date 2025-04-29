@@ -5,25 +5,43 @@
     <title>cube-scrambler mocha tests</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="mocha.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.svg" />
   </head>
   <body>
     <h1>cube-scrambler mocha tests</h1>
+
+    {% if start_button %}
+    <button onclick="this.disabled = true; mocha.run();">Start Tests</button>
+    {% endif %}
+
     <div id="mocha"></div>
 
     <script src="mocha.js"></script>
+
+    {% if custom_reporter_js_url %}
+    <script src="{{ custom_reporter_js_url }}"></script>
+    {% endif %}
 
     <script>
       mocha.setup("bdd");
       mocha.checkLeaks();
     </script>
 
+    {% if custom_reporter_constructor %}
+    <script>
+      mocha.reporter({{ custom_reporter_constructor }});
+    </script>
+    {% endif %}
+
     <script src="cube.test.js"></script>
     <script src="random.test.js"></script>
     <script src="random.testing.test.js"></script>
     <script src="testing/chai_plugin.test.js"></script>
 
+    {% if not start_button %}
     <script>
       mocha.run();
     </script>
+    {% endif %}
   </body>
 </html>
