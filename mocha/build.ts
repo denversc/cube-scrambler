@@ -10,7 +10,7 @@ async function main(): Promise<void> {
   const parsedArgs = parseArgs(process.argv.slice(2));
 
   const builderSettings: BuilderSettings = {
-    srcDir: __dirname,
+    srcDir: path.normalize(path.join(__dirname, "src")),
     destDir: path.normalize(path.join(__dirname, "..", "build", "mocha")),
     nodeModulesDir: path.normalize(path.join(__dirname, "..", "node_modules")),
   };
