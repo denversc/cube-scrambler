@@ -23,18 +23,26 @@ async function main(): Promise<void> {
 
   builder.runEsbuild("test/**/*.test.ts", "--external:mocha");
 
-  let indexHtmlRenderContext: Record<string, unknown> | null = null;
+  const indexHtmlRenderContext: Record<string, unknown> = {};
   if (parsedArgs.ui === "console") {
     builder.runEsbuild(
       path.join("mocha", "browser", "console_mocha_reporter.ts"),
       "--global-name=console_mocha_reporter_s2he8g3fbt",
     );
-    indexHtmlRenderContext = {
+    Object.assign(indexHtmlRenderContext, {
       custom_reporter_js_url: "console_mocha_reporter.js",
       custom_reporter_constructor: "console_mocha_reporter_s2he8g3fbt.ConsoleMochaReporter",
-    };
+    });
   } else if (parsedArgs.ui !== "html") {
     throw new Error(`internal error: invalid parsedArgs.ui: ${parsedArgs.ui} [gpyxgvs6ht]`);
+  }
+
+  if (parsedArgs.startTrigger === "button") {
+    indexHtmlRenderContext["start_button"] = true;
+  } else if (parsedArgs.startTrigger !== "load") {
+    throw new Error(
+      `internal error: invalid parsedArgs.startTrigger: ${parsedArgs.startTrigger} [r3c2tvydw5]`,
+    );
   }
 
   builder.runNunjucks("index.html", indexHtmlRenderContext);
@@ -127,15 +135,20 @@ class Builder {
 
 interface ParsedArgs {
   ui: "html" | "console";
+  startTrigger: "button" | "load";
 }
 
 function parseArgs(args: string[]): ParsedArgs {
-  const parsedArgs: ParsedArgs = { ui: "html" };
+  const parsedArgs: ParsedArgs = { ui: "html", startTrigger: "load" };
   for (const arg of args) {
     if (arg == "--html") {
       parsedArgs.ui = "html";
     } else if (arg == "--console") {
       parsedArgs.ui = "console";
+    } else if (arg == "--button") {
+      parsedArgs.startTrigger = "button";
+    } else if (arg == "--load") {
+      parsedArgs.startTrigger = "load";
     } else {
       throw new Error(`unknown command-line argument: ${arg}`);
     }

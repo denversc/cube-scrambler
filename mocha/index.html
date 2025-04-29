@@ -9,6 +9,11 @@
   </head>
   <body>
     <h1>cube-scrambler mocha tests</h1>
+
+    {% if start_button %}
+    <button onclick="this.disabled = true; mocha.run();">Start Tests</button>
+    {% endif %}
+
     <div id="mocha"></div>
 
     <script src="mocha.js"></script>
@@ -33,8 +38,10 @@
     <script src="random.testing.test.js"></script>
     <script src="testing/chai_plugin.test.js"></script>
 
+    {% if not start_button %}
     <script>
       mocha.run();
     </script>
+    {% endif %}
   </body>
 </html>
