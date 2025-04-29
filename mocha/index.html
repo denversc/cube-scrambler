@@ -11,11 +11,15 @@
     <div id="mocha"></div>
 
     <script src="mocha.js"></script>
+    <script src="mocha_custom_reporter.js"></script>
 
     <script>
       mocha.setup("bdd");
       mocha.checkLeaks();
+      mocha.reporter(MochaCustomReporter);
     </script>
+
+    <script src="mocha_custom_reporter.js"></script>
 
     <script src="cube.test.js"></script>
     <script src="random.test.js"></script>
