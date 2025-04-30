@@ -5,6 +5,7 @@
     { "path": "./mocha" },
     { "path": "./mocha/src" },
     { "path": "./mocha/test" },
+    { "path": "./mocha/types" },
     { "path": "./src" },
     { "path": "./src/browser" },
     { "path": "./src/node" },

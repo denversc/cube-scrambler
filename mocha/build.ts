@@ -2,9 +2,12 @@ import type { Stats } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { execa } from "execa";
 import fsExtra from "fs-extra";
 import { rimraf } from "rimraf";
 import signale from "signale";
+
+import type { MainConfig } from "./types";
 
 function main(): Promise<void> {
   const parsedArgs = parseArgs(process.argv.slice(2));
@@ -14,6 +17,7 @@ function main(): Promise<void> {
     destDir: parsedArgs.destDir,
     testsDir: path.normalize(path.join(__dirname, "..", "test")),
     nodeModulesDir: path.normalize(path.join(__dirname, "..", "node_modules")),
+    mainConfig: { ui: parsedArgs.ui, startTrigger: parsedArgs.startTrigger },
   };
 
   return build(config);
@@ -24,13 +28,17 @@ interface BuildConfig {
   testsDir: string;
   destDir: string;
   nodeModulesDir: string;
+  mainConfig: MainConfig;
 }
 
 async function build(config: BuildConfig): Promise<void> {
-  const { srcDir, testsDir, destDir, nodeModulesDir } = config;
+  const { srcDir, testsDir, destDir, nodeModulesDir, mainConfig } = config;
 
   await deleteDirectory(destDir);
   await createDirectory(destDir);
+
+  await copyFileToDirectory(path.join(srcDir, "index.html"), destDir);
+  await copyFileToDirectory(path.join(srcDir, "favicon.svg"), destDir);
 
   await copyDirectory(srcDir, path.join(destDir, "src"));
   await copyDirectory(testsDir, path.join(destDir, "tests"));
@@ -39,6 +47,17 @@ async function build(config: BuildConfig): Promise<void> {
   const mochaDestDir = path.join(destDir, "mocha");
   await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.js"), mochaDestDir);
   await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.css"), mochaDestDir);
+
+  await execa({ preferLocal: true, cwd: destDir, stdio: "inherit" })("esbuild", [
+    "--bundle",
+    "src/index.ts",
+    "--outdir=js/src",
+    "--platform=browser",
+    "--format=esm",
+    "--sourcemap",
+    "--outdir=js/src",
+    `--define:main_config_from_esbuild_ycvsy2qgg5=${JSON.stringify(mainConfig)}`,
+  ]);
 }
 
 /**
@@ -102,7 +121,7 @@ async function copyDirectory(srcDir: string, destDir: string): Promise<void> {
   signale.note(`Copying directory ${srcDir} to ${destDir}`);
   await createDirectory(destDir);
   const tsConfigsForFixup: Array<{ srcFile: string; destFile: string }> = [];
-  const suffixesToCopy = new Set([".ts", ".json", ".html"]);
+  const suffixesToCopy = new Set([".ts", ".json"]);
   // noinspection JSUnusedGlobalSymbols
   const copyOptions: fsExtra.CopyOptions = {
     async filter(srcPath, destPath): Promise<boolean> {
@@ -183,8 +202,8 @@ async function fixupTsConfig(tsConfigPath: string, baseDir: string): Promise<voi
 }
 
 interface ParsedArgs {
-  ui: "html" | "console";
-  startTrigger: "button" | "load";
+  ui: MainConfig.Ui;
+  startTrigger: MainConfig.StartTrigger;
   destDir: string;
 }
 

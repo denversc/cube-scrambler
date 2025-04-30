@@ -5,7 +5,7 @@
     "types": ["mocha"]
   },
 
-  "references": [],
+  "references": [{ "path": "../types" }],
 
   "include": ["*"]
 }
