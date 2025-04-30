@@ -10,6 +10,7 @@ import puppeteer, {
   type BrowserContext,
   type LaunchOptions,
   type Page,
+  TimeoutError as PuppeteerTimeoutError,
 } from "puppeteer";
 import { rimraf } from "rimraf";
 import signale from "signale";
@@ -66,6 +67,12 @@ export interface BrowserTestTools {
   page: Page;
 
   gotoPage(ui: EsbuildUi, startTrigger: EsbuildStartTrigger): Promise<void>;
+  verifyNoMochaRunStartNotification(): Promise<void>;
+  waitForMochaRunStartNotification(): Promise<void>;
+  verifyNoMochaRunDoneNotification(): Promise<void>;
+  waitForMochaRunDoneNotification(): Promise<void>;
+  getMochaDivInnerHtml(): Promise<string>;
+  clickStartTestsButton(): Promise<void>;
 }
 
 class BrowserTestToolsImpl implements BrowserTestTools {
@@ -105,6 +112,46 @@ class BrowserTestToolsImpl implements BrowserTestTools {
           `(HTTP Status: ${result.status()} ${result.statusText()}) [ynhspqdbq7]`,
       );
     }
+  }
+
+  async waitForMochaRunStartNotification(): Promise<void> {
+    await this.page.waitForSelector("[data-wkmc78epyj-mocha-run-start]", { timeout: 1000 });
+  }
+
+  async waitForMochaRunDoneNotification(): Promise<void> {
+    await this.page.waitForSelector("[data-wkmc78epyj-mocha-run-done]", { timeout: 1000 });
+  }
+
+  verifyNoMochaRunStartNotification(): Promise<void> {
+    return this.#verifyNoNotification("data-wkmc78epyj-mocha-run-start");
+  }
+
+  async verifyNoMochaRunDoneNotification(): Promise<void> {
+    return this.#verifyNoNotification("data-wkmc78epyj-mocha-run-done");
+  }
+
+  async #verifyNoNotification(attributeName: string): Promise<void> {
+    const selector = `[${attributeName}]`;
+    await new Promise((resolve, reject) => {
+      this.page
+        .waitForSelector(selector, { timeout: 200 })
+        .then(() => reject(`got notification ${attributeName}, but expected to NOT get it`))
+        .catch(error => {
+          if (error instanceof PuppeteerTimeoutError) {
+            resolve(null);
+          } else {
+            reject(error);
+          }
+        });
+    });
+  }
+
+  getMochaDivInnerHtml(): Promise<string> {
+    return this.page.$eval("#mocha", div => div.innerHTML);
+  }
+
+  clickStartTestsButton(): Promise<void> {
+    return this.page.$eval("#btnStartTests", button => button.click());
   }
 
   get #httpServerPort(): number {
