@@ -96,7 +96,7 @@ class Builder {
   runEsbuild(...args: string[]): void {
     this.#runEsbuild(
       "--bundle",
-      "--outdir=build/mocha",
+      `--outdir=${this.#destDir}`,
       "--sourcemap",
       "--platform=browser",
       "--format=iife",
