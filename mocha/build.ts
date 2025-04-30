@@ -1,141 +1,230 @@
-import fs from "node:fs";
+import type { Stats } from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 
-import { execaSync } from "execa";
-import nunjucks from "nunjucks";
-import { rimrafSync } from "rimraf";
+import { execa } from "execa";
+import fsExtra from "fs-extra";
+import { rimraf } from "rimraf";
 import signale from "signale";
 
-async function main(): Promise<void> {
+import type { MainConfig } from "./types";
+
+function main(): Promise<void> {
   const parsedArgs = parseArgs(process.argv.slice(2));
 
-  const builderSettings: BuilderSettings = {
+  const config: BuildConfig = {
     srcDir: path.normalize(path.join(__dirname, "src")),
     destDir: parsedArgs.destDir,
+    testsDir: path.normalize(path.join(__dirname, "..", "test")),
     nodeModulesDir: path.normalize(path.join(__dirname, "..", "node_modules")),
+    ui: parsedArgs.ui,
+    startTrigger: parsedArgs.startTrigger,
   };
 
-  const builder = new Builder(builderSettings);
-  builder.resetDestDir();
-  builder.copyFileFromSrcDir("favicon.svg");
-  builder.copyFileFromNodeModules("mocha", "mocha.js");
-  builder.copyFileFromNodeModules("mocha", "mocha.css");
-
-  builder.runEsbuild("test/**/*.test.ts", "--external:mocha");
-
-  const indexHtmlRenderContext: Record<string, unknown> = {};
-  if (parsedArgs.ui === "console") {
-    builder.runEsbuild(
-      path.join("mocha", "src", "console_mocha_reporter.ts"),
-      "--global-name=console_mocha_reporter_s2he8g3fbt",
-    );
-    Object.assign(indexHtmlRenderContext, {
-      custom_reporter_js_url: "console_mocha_reporter.js",
-      custom_reporter_constructor: "console_mocha_reporter_s2he8g3fbt.ConsoleMochaReporter",
-    });
-  } else if (parsedArgs.ui !== "html") {
-    throw new Error(`internal error: invalid parsedArgs.ui: ${parsedArgs.ui} [gpyxgvs6ht]`);
-  }
-
-  if (parsedArgs.startTrigger === "button") {
-    indexHtmlRenderContext["start_button"] = true;
-  } else if (parsedArgs.startTrigger !== "load") {
-    throw new Error(
-      `internal error: invalid parsedArgs.startTrigger: ${parsedArgs.startTrigger} [r3c2tvydw5]`,
-    );
-  }
-
-  builder.runNunjucks("index.html", indexHtmlRenderContext);
+  return build(config);
 }
 
-interface BuilderSettings {
+interface BuildConfig {
   srcDir: string;
+  testsDir: string;
   destDir: string;
   nodeModulesDir: string;
+  ui: MainConfig.Ui;
+  startTrigger: MainConfig.StartTrigger;
 }
 
-class Builder {
-  readonly #srcDir: string;
-  readonly #destDir: string;
-  readonly #nodeModulesDir: string;
+async function build(config: BuildConfig): Promise<void> {
+  const { srcDir, testsDir, destDir, nodeModulesDir } = config;
 
-  constructor(settings: BuilderSettings) {
-    this.#srcDir = settings.srcDir;
-    this.#destDir = settings.destDir;
-    this.#nodeModulesDir = settings.nodeModulesDir;
+  await deleteDirectory(destDir);
+  await createDirectory(destDir);
+
+  await copyFileToDirectory(path.join(srcDir, "index.html"), destDir);
+  await copyFileToDirectory(path.join(srcDir, "favicon.svg"), destDir);
+
+  await copyDirectory(srcDir, path.join(destDir, "src"));
+
+  const mochaNodeModulesDir = path.join(nodeModulesDir, "mocha");
+  const mochaDestDir = path.join(destDir, "mocha");
+  await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.js"), mochaDestDir);
+  await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.css"), mochaDestDir);
+
+  await execa({ preferLocal: true, cwd: destDir, stdio: "inherit" })("esbuild", [
+    "--bundle",
+    `${testsDir}/**/*.test.ts`,
+    "--outdir=js/tests",
+    "--platform=browser",
+    "--format=esm",
+    "--sourcemap",
+  ]);
+
+  const testModules: string[] = [];
+  for await (const testPath of fs.glob("**/*.test.js", {
+    cwd: path.join(destDir, "js", "tests"),
+  })) {
+    testModules.push("../tests/" + testPath);
   }
 
-  resetDestDir(): void {
-    if (fs.existsSync(this.#destDir)) {
-      signale.note(`Deleting directory: ${this.#destDir}`);
-      rimrafSync(this.#destDir);
-    }
-    signale.note(`Creating directory: ${this.#destDir}`);
-    fs.mkdirSync(this.#destDir, { recursive: true });
+  const mainConfig: MainConfig = {
+    ui: config.ui,
+    startTrigger: config.startTrigger,
+    testModules,
+  };
+  await execa({ preferLocal: true, cwd: destDir, stdio: "inherit" })("esbuild", [
+    "--bundle",
+    "src/index.ts",
+    "--outdir=js/src",
+    "--platform=browser",
+    "--format=esm",
+    "--sourcemap",
+    `--define:main_config_from_esbuild_ycvsy2qgg5=${JSON.stringify(mainConfig)}`,
+  ]);
+}
+
+/**
+ * Deletes the given directory with all of its files, recursively.
+ * If the directory does not exist then this function does nothing and returns as if successful.
+ * @param directoryPath the path of the directory to delete.
+ */
+async function deleteDirectory(directoryPath: string): Promise<void> {
+  const destDirExists: boolean = await fsExtra.pathExists(directoryPath);
+  if (!destDirExists) {
+    return;
+  }
+  signale.note(`Deleting directory: ${directoryPath}`);
+  await rimraf(directoryPath);
+}
+
+/**
+ * Creates the directory with the given path, and any missing parent directories.
+ * If the directory already exists then this function does nothing and returns as if successful.
+ * @param directoryPath the path of the directory to create.
+ */
+async function createDirectory(directoryPath: string): Promise<void> {
+  const destDirExists: boolean = await fsExtra.pathExists(directoryPath);
+  if (destDirExists) {
+    return;
+  }
+  signale.note(`Creating directory: ${directoryPath}`);
+  await fs.mkdir(directoryPath, { recursive: true });
+}
+
+/**
+ * Copies the given file into the given directory.
+ */
+async function copyFileToDirectory(srcFile: string, destDir: string): Promise<void> {
+  const destFile = path.join(destDir, path.basename(srcFile));
+  signale.note(`Copying file ${srcFile} to ${destFile}`);
+  await createDirectory(destDir);
+  await fs.copyFile(srcFile, destFile);
+}
+
+async function getPathType(fileSystemPath: string): Promise<"file" | "directory" | null> {
+  let statResult: Stats;
+  try {
+    statResult = await fs.stat(fileSystemPath);
+  } catch (_) {
+    return null;
+  }
+  if (statResult.isFile()) {
+    return "file";
+  } else if (statResult.isDirectory()) {
+    return "directory";
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Copies the files from one directory to another, recursively, filtering out
+ */
+async function copyDirectory(srcDir: string, destDir: string): Promise<void> {
+  signale.note(`Copying directory ${srcDir} to ${destDir}`);
+  await createDirectory(destDir);
+  const tsConfigsForFixup: Array<{ srcFile: string; destFile: string }> = [];
+  const suffixesToCopy = new Set([".ts", ".json"]);
+  // noinspection JSUnusedGlobalSymbols
+  const copyOptions: fsExtra.CopyOptions = {
+    async filter(srcPath, destPath): Promise<boolean> {
+      const srcType = await getPathType(srcPath);
+      if (srcType === "directory") {
+        return true;
+      } else if (srcType === null) {
+        return false;
+      } else if (srcType !== "file") {
+        throw new Error(`internal error: unexpected srcType: ${srcType} [d63ckpvy8n]`);
+      }
+      for (const suffix of suffixesToCopy) {
+        if (srcPath.endsWith(suffix)) {
+          signale.note(`Copying file ${srcPath} to ${destPath}`);
+          if (path.basename(srcPath) == "tsconfig.json") {
+            tsConfigsForFixup.push({ srcFile: srcPath, destFile: destPath });
+          }
+          return true;
+        }
+      }
+      return false;
+    },
+  };
+
+  await fsExtra.copy(srcDir, destDir, copyOptions);
+
+  for (const tsConfigCopySpec of tsConfigsForFixup) {
+    await fixupTsConfig(tsConfigCopySpec.destFile, path.dirname(tsConfigCopySpec.srcFile));
+  }
+}
+
+/**
+ * Fixes up relatives paths in a tsconfig.json file that was copied to a different directory.
+ */
+async function fixupTsConfig(tsConfigPath: string, baseDir: string): Promise<void> {
+  signale.note(`Fixing up relative paths in ${tsConfigPath} based on directory: ${baseDir}`);
+  const tsConfigBeforeText = await fs.readFile(tsConfigPath, { encoding: "utf8" });
+  let tsConfigBefore: unknown;
+  try {
+    tsConfigBefore = JSON.parse(tsConfigBeforeText);
+  } catch (error: unknown) {
+    signale.note(`Parsing JSON from ${tsConfigPath} failed: ${error}; skipping`);
+    return;
   }
 
-  copyFileFromNodeModules(...srcPath: string[]): void {
-    this.#copyFileFrom(this.#nodeModulesDir, ...srcPath);
-  }
-
-  copyFileFromSrcDir(...srcPath: string[]): void {
-    this.#copyFileFrom(this.#srcDir, ...srcPath);
-  }
-
-  #copyFileFrom(srcDir: string, ...srcPath: string[]): void {
-    const srcFullPath = path.join(srcDir, ...srcPath);
-    const destPath = path.join(this.#destDir, path.basename(srcFullPath));
-    this.#copyFile(srcFullPath, destPath);
-  }
-
-  #copyFile(srcPath: string, destPath: string): void {
-    signale.note(`Copying ${srcPath} to ${destPath}`);
-    fs.copyFileSync(srcPath, destPath);
-  }
-
-  runEsbuild(...args: string[]): void {
-    this.#runEsbuild(
-      "--bundle",
-      `--outdir=${this.#destDir}`,
-      "--sourcemap",
-      "--platform=browser",
-      "--format=iife",
-      ...args,
+  if (typeof tsConfigBefore !== "object") {
+    signale.note(
+      `Parsing JSON from ${tsConfigPath} produced ${typeof tsConfigBefore}, ` +
+        `but expected object; skipping`,
     );
+    return;
   }
 
-  #runEsbuild(...args: string[]): void {
-    const cwd = path.normalize(path.join(__dirname, ".."));
-    const commandRunner = execaSync({
-      preferLocal: true,
-      stdin: "inherit",
-      stdout: "inherit",
-      stderr: "inherit",
-      cwd,
-    });
-
-    const allArgs = ["esbuild", ...args];
-    signale.note(`Running command: ${allArgs.join(" ")}`);
-    commandRunner("esbuild", args);
+  const tsConfig = tsConfigBefore as unknown as Record<string, unknown>;
+  const extendsValue = tsConfig["extends"];
+  if (typeof extendsValue !== "string") {
+    signale.note(
+      `"extends" is not defined as a string in ${tsConfigPath} ` +
+        `(got ${typeof extendsValue}); skipping`,
+    );
+    return;
   }
 
-  runNunjucks(fileName: string, renderContext: Record<string, unknown> | null): void {
-    const srcFile = path.join(this.#srcDir, fileName);
-    const destFile = path.join(this.#destDir, fileName);
-    signale.note(`Generating ${destFile} from ${srcFile}`);
-
-    const env = nunjucks.configure(this.#srcDir, {
-      throwOnUndefined: true, // Fail loudly when undefined variables are used, for robustness.
-    });
-    const template = env.getTemplate(fileName, false);
-    const renderedTemplate = template.render(renderContext ?? {});
-    fs.writeFileSync(destFile, renderedTemplate);
+  if (path.isAbsolute(extendsValue)) {
+    signale.note(
+      `"extends" defined in ${tsConfigPath} is already absolute: ${extendsValue}; nothing to do`,
+    );
+    return;
   }
+
+  const newExtendsValue = path.normalize(path.join(baseDir, extendsValue));
+  signale.note(
+    `"extends" defined in ${tsConfigPath} changed to ${newExtendsValue} (was ${extendsValue})`,
+  );
+  tsConfig["extends"] = newExtendsValue;
+
+  await fs.writeFile(tsConfigPath, JSON.stringify(tsConfig, undefined, 2), { encoding: "utf8" });
 }
 
 interface ParsedArgs {
-  ui: "html" | "console";
-  startTrigger: "button" | "load";
+  ui: MainConfig.Ui;
+  startTrigger: MainConfig.StartTrigger;
   destDir: string;
 }
 
