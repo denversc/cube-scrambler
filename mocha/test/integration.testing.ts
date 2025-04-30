@@ -1,5 +1,6 @@
 import { mkdtemp } from "node:fs/promises";
 import type http from "node:http";
+import { tmpdir as getSystemTempDir } from "node:os";
 import path from "node:path";
 
 import { execa } from "execa";
@@ -117,7 +118,7 @@ class BrowserTestToolsImpl implements BrowserTestTools {
   }
 
   async #initializeTempDir(): Promise<void> {
-    this.tempDir = await mkdtemp("cube-scrambler-mvpnyf386e");
+    this.tempDir = await mkdtemp(path.join(getSystemTempDir(), "cube-scrambler-mvpnyf386e"));
     signale.note(`Created temporary directory: ${this.tempDir}`);
   }
 

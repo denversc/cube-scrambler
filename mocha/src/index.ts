@@ -9,21 +9,21 @@ async function main(config: MainConfig): Promise<void> {
 
   mocha.setup("bdd");
   mocha.checkLeaks();
+  mocha.failZero();
 
   await Promise.all(config.testModules.map(testModule => import(testModule)));
 
+  console.log(`ui=${ui} [ertgr37c2j]`);
   if (ui === "console") {
-    console.log("registering console reporter [ertgr37c2j]");
     mocha.reporter(ConsoleMochaReporter as unknown as Mocha.ReporterConstructor);
   } else if (ui === "html") {
-    console.log("setting up html reporter [ertgr37c2j]");
     getElementWithIdOrThrow("mocha").hidden = false;
   } else {
     throw new Error(`invalid value for "ui": ${ui} [b6r9vhk4a8]`);
   }
 
+  console.log(`startTrigger=${startTrigger} [ertgr37c2j]`);
   if (startTrigger === "button") {
-    console.log("setting up button to start tests [ertgr37c2j]");
     const button: HTMLButtonElement = getElementWithIdOrThrow("btnStartTests");
     button.hidden = false;
     button.addEventListener("click", event => {
@@ -32,7 +32,7 @@ async function main(config: MainConfig): Promise<void> {
       runMochaTests();
     });
   } else if (startTrigger === "load") {
-    runMochaTests();
+    setTimeout(runMochaTests);
   } else {
     throw new Error(`invalid value for "startTrigger": ${startTrigger} [t55578mqss]`);
   }
@@ -41,10 +41,24 @@ async function main(config: MainConfig): Promise<void> {
 function runMochaTests() {
   console.log("mocha.run() start [ertgr37c2j]");
   try {
+    sendNotification("mocha-run-start");
     mocha.run();
   } finally {
     console.log("mocha.run() done [ertgr37c2j]");
+    sendNotification("mocha-run-done");
   }
+}
+
+function sendNotification(id: string, value?: string): void {
+  const attributeName = `data-wkmc78epyj-${id}`;
+  console.log(
+    `appending notification element with attribute ${JSON.stringify(attributeName)} and value ` +
+      `${JSON.stringify(value)} [ertgr37c2j]`,
+  );
+  const notificationsElement = getElementWithIdOrThrow("notifications");
+  const notificationElement = document.createElement("span");
+  notificationElement.setAttribute(`data-wkmc78epyj-${id}`, value ?? "");
+  notificationsElement.append(notificationElement);
 }
 
 function getElementWithIdOrThrow<T extends HTMLElement = HTMLElement>(elementId: string): T {
