@@ -44,7 +44,7 @@ jobs:
 
       - run: npm clean-install
 
-      - run: npm run mocha:ci
+      - run: npm run mocha -- --exit
 
   prettier:
     runs-on: ubuntu-latest

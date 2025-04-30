@@ -29,11 +29,10 @@
   "scripts": {
     "lint": "eslint --fix .",
     "lint:check": "eslint .",
-    "mocha": "TS_NODE_TRANSPILE_ONLY=1 TS_NODE_PROJECT=test/tsconfig.json mocha 'test/**/*.test.ts'",
+    "mocha": "TS_NODE_TRANSPILE_ONLY=1 TS_NODE_PROJECT=test/tsconfig.json mocha 'test/**/*.test.ts' --check-leaks --fail-zero --forbid-only --forbid-pending",
     "mocha:browser:build": "ts-node mocha/build.ts",
     "mocha:browser:serve": "ts-node mocha/serve.ts",
     "mocha:browser:test": "TS_NODE_TRANSPILE_ONLY=1 TS_NODE_PROJECT=test/tsconfig.json mocha 'mocha/test/**/*.test.ts'",
-    "mocha:ci": "mocha --exit --check-leaks --fail-zero --forbid-only --forbid-pending",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "tsc": "tsc -b"
