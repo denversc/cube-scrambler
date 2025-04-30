@@ -1,3 +1,4 @@
+import type { Stats } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -27,12 +28,17 @@ interface BuildConfig {
 
 async function build(config: BuildConfig): Promise<void> {
   const { srcDir, testsDir, destDir, nodeModulesDir } = config;
+
   await deleteDirectory(destDir);
   await createDirectory(destDir);
-  await copyDirectory(srcDir, destDir);
+
+  await copyDirectory(srcDir, path.join(destDir, "src"));
   await copyDirectory(testsDir, path.join(destDir, "tests"));
-  await copyFileToDirectory(path.join(nodeModulesDir, "mocha", "mocha.js"), destDir);
-  await copyFileToDirectory(path.join(nodeModulesDir, "mocha", "mocha.css"), destDir);
+
+  const mochaNodeModulesDir = path.join(nodeModulesDir, "mocha");
+  const mochaDestDir = path.join(destDir, "mocha");
+  await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.js"), mochaDestDir);
+  await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.css"), mochaDestDir);
 }
 
 /**
@@ -73,23 +79,107 @@ async function copyFileToDirectory(srcFile: string, destDir: string): Promise<vo
   await fs.copyFile(srcFile, destFile);
 }
 
+async function getPathType(fileSystemPath: string): Promise<"file" | "directory" | null> {
+  let statResult: Stats;
+  try {
+    statResult = await fs.stat(fileSystemPath);
+  } catch (_) {
+    return null;
+  }
+  if (statResult.isFile()) {
+    return "file";
+  } else if (statResult.isDirectory()) {
+    return "directory";
+  } else {
+    return null;
+  }
+}
+
 /**
  * Copies the files from one directory to another, recursively, filtering out
  */
 async function copyDirectory(srcDir: string, destDir: string): Promise<void> {
+  signale.note(`Copying directory ${srcDir} to ${destDir}`);
   await createDirectory(destDir);
+  const tsConfigsForFixup: Array<{ srcFile: string; destFile: string }> = [];
   const suffixesToCopy = new Set([".ts", ".json", ".html"]);
-  await fsExtra.copy(srcDir, destDir, {
-    filter: (srcPath, destPath) => {
+  // noinspection JSUnusedGlobalSymbols
+  const copyOptions: fsExtra.CopyOptions = {
+    async filter(srcPath, destPath): Promise<boolean> {
+      const srcType = await getPathType(srcPath);
+      if (srcType === "directory") {
+        return true;
+      } else if (srcType === null) {
+        return false;
+      } else if (srcType !== "file") {
+        throw new Error(`internal error: unexpected srcType: ${srcType} [d63ckpvy8n]`);
+      }
       for (const suffix of suffixesToCopy) {
         if (srcPath.endsWith(suffix)) {
           signale.note(`Copying file ${srcPath} to ${destPath}`);
+          if (path.basename(srcPath) == "tsconfig.json") {
+            tsConfigsForFixup.push({ srcFile: srcPath, destFile: destPath });
+          }
           return true;
         }
       }
       return false;
     },
-  });
+  };
+
+  await fsExtra.copy(srcDir, destDir, copyOptions);
+
+  for (const tsConfigCopySpec of tsConfigsForFixup) {
+    await fixupTsConfig(tsConfigCopySpec.destFile, path.dirname(tsConfigCopySpec.srcFile));
+  }
+}
+
+/**
+ * Fixes up relatives paths in a tsconfig.json file that was copied to a different directory.
+ */
+async function fixupTsConfig(tsConfigPath: string, baseDir: string): Promise<void> {
+  signale.note(`Fixing up relative paths in ${tsConfigPath} based on directory: ${baseDir}`);
+  const tsConfigBeforeText = await fs.readFile(tsConfigPath, { encoding: "utf8" });
+  let tsConfigBefore: unknown;
+  try {
+    tsConfigBefore = JSON.parse(tsConfigBeforeText);
+  } catch (error: unknown) {
+    signale.note(`Parsing JSON from ${tsConfigPath} failed: ${error}; skipping`);
+    return;
+  }
+
+  if (typeof tsConfigBefore !== "object") {
+    signale.note(
+      `Parsing JSON from ${tsConfigPath} produced ${typeof tsConfigBefore}, ` +
+        `but expected object; skipping`,
+    );
+    return;
+  }
+
+  const tsConfig = tsConfigBefore as unknown as Record<string, unknown>;
+  const extendsValue = tsConfig["extends"];
+  if (typeof extendsValue !== "string") {
+    signale.note(
+      `"extends" is not defined as a string in ${tsConfigPath} ` +
+        `(got ${typeof extendsValue}); skipping`,
+    );
+    return;
+  }
+
+  if (path.isAbsolute(extendsValue)) {
+    signale.note(
+      `"extends" defined in ${tsConfigPath} is already absolute: ${extendsValue}; nothing to do`,
+    );
+    return;
+  }
+
+  const newExtendsValue = path.normalize(path.join(baseDir, extendsValue));
+  signale.note(
+    `"extends" defined in ${tsConfigPath} changed to ${newExtendsValue} (was ${extendsValue})`,
+  );
+  tsConfig["extends"] = newExtendsValue;
+
+  await fs.writeFile(tsConfigPath, JSON.stringify(tsConfig, undefined, 2), { encoding: "utf8" });
 }
 
 interface ParsedArgs {
