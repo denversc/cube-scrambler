@@ -89,7 +89,7 @@ jobs:
 
       - run: npm clean-install
 
-      // Workaround "No usable sandbox!" error from Chrome.
+      # Workaround "No usable sandbox!" error from Chrome.
       - name: Disable AppArmor
         run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
 
