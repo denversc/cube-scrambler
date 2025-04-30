@@ -10,6 +10,8 @@ async function main(config: MainConfig): Promise<void> {
   mocha.setup("bdd");
   mocha.checkLeaks();
 
+  await Promise.all(config.testModules.map(testModule => import(testModule)));
+
   if (ui === "console") {
     console.log("registering console reporter [ertgr37c2j]");
     mocha.reporter(ConsoleMochaReporter as unknown as Mocha.ReporterConstructor);

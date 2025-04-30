@@ -17,7 +17,8 @@ function main(): Promise<void> {
     destDir: parsedArgs.destDir,
     testsDir: path.normalize(path.join(__dirname, "..", "test")),
     nodeModulesDir: path.normalize(path.join(__dirname, "..", "node_modules")),
-    mainConfig: { ui: parsedArgs.ui, startTrigger: parsedArgs.startTrigger },
+    ui: parsedArgs.ui,
+    startTrigger: parsedArgs.startTrigger,
   };
 
   return build(config);
@@ -28,11 +29,12 @@ interface BuildConfig {
   testsDir: string;
   destDir: string;
   nodeModulesDir: string;
-  mainConfig: MainConfig;
+  ui: MainConfig.Ui;
+  startTrigger: MainConfig.StartTrigger;
 }
 
 async function build(config: BuildConfig): Promise<void> {
-  const { srcDir, testsDir, destDir, nodeModulesDir, mainConfig } = config;
+  const { srcDir, testsDir, destDir, nodeModulesDir } = config;
 
   await deleteDirectory(destDir);
   await createDirectory(destDir);
@@ -41,7 +43,6 @@ async function build(config: BuildConfig): Promise<void> {
   await copyFileToDirectory(path.join(srcDir, "favicon.svg"), destDir);
 
   await copyDirectory(srcDir, path.join(destDir, "src"));
-  await copyDirectory(testsDir, path.join(destDir, "tests"));
 
   const mochaNodeModulesDir = path.join(nodeModulesDir, "mocha");
   const mochaDestDir = path.join(destDir, "mocha");
@@ -50,12 +51,32 @@ async function build(config: BuildConfig): Promise<void> {
 
   await execa({ preferLocal: true, cwd: destDir, stdio: "inherit" })("esbuild", [
     "--bundle",
+    `${testsDir}/**/*.test.ts`,
+    "--outdir=js/tests",
+    "--platform=browser",
+    "--format=esm",
+    "--sourcemap",
+  ]);
+
+  const testModules: string[] = [];
+  for await (const testPath of fs.glob("**/*.test.js", {
+    cwd: path.join(destDir, "js", "tests"),
+  })) {
+    testModules.push("../tests/" + testPath);
+  }
+
+  const mainConfig: MainConfig = {
+    ui: config.ui,
+    startTrigger: config.startTrigger,
+    testModules,
+  };
+  await execa({ preferLocal: true, cwd: destDir, stdio: "inherit" })("esbuild", [
+    "--bundle",
     "src/index.ts",
     "--outdir=js/src",
     "--platform=browser",
     "--format=esm",
     "--sourcemap",
-    "--outdir=js/src",
     `--define:main_config_from_esbuild_ycvsy2qgg5=${JSON.stringify(mainConfig)}`,
   ]);
 }
