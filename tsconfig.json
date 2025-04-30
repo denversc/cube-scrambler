@@ -3,7 +3,8 @@
   "include": [],
   "references": [
     { "path": "./mocha" },
-    { "path": "./mocha/browser" },
+    { "path": "./mocha/src" },
+    { "path": "./mocha/test" },
     { "path": "./src" },
     { "path": "./src/browser" },
     { "path": "./src/node" },

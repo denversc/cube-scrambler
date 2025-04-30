@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: ${{ env.E5VFCV_NODE_VERSION }}
 
-      - run: npm clean-install
+      - run: npm clean-install --fund=false --audit=false
 
       - run: npm run tsc
 
@@ -42,9 +42,9 @@ jobs:
         with:
           node-version: ${{ env.E5VFCV_NODE_VERSION }}
 
-      - run: npm clean-install
+      - run: npm clean-install --fund=false --audit=false
 
-      - run: npm run mocha:ci
+      - run: npm run mocha -- --exit
 
   prettier:
     runs-on: ubuntu-latest
@@ -57,7 +57,7 @@ jobs:
         with:
           node-version: ${{ env.E5VFCV_NODE_VERSION }}
 
-      - run: npm clean-install
+      - run: npm clean-install --fund=false --audit=false
 
       - run: npm run prettier:check
 
@@ -72,7 +72,7 @@ jobs:
         with:
           node-version: ${{ env.E5VFCV_NODE_VERSION }}
 
-      - run: npm clean-install
+      - run: npm clean-install --fund=false --audit=false
 
       - run: npm run lint:check
 
@@ -87,50 +87,13 @@ jobs:
         with:
           node-version: ${{ env.E5VFCV_NODE_VERSION }}
 
-      - run: npm clean-install
+      - run: npm clean-install --fund=false --audit=false
 
-      - id: mocha_browser_build_default
-        continue-on-error: true
-        run: npm run mocha:browser:build
+      # Workaround "No usable sandbox!" error from Chrome.
+      - name: Disable AppArmor
+        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
 
-      - id: mocha_browser_build_console
-        continue-on-error: true
-        run: npm run mocha:browser:build -- --console
-
-      - id: mocha_browser_build_html
-        continue-on-error: true
-        run: npm run mocha:browser:build -- --html
-
-      - id: mocha_browser_build_button
-        continue-on-error: true
-        run: npm run mocha:browser:build -- --button
-
-      - id: mocha_browser_build_load
-        continue-on-error: true
-        run: npm run mocha:browser:build -- --load
-
-      - name: check results
-        run: |
-          set -euo pipefail
-
-          failcount=0
-
-          function process_result {
-            if [[ $2 == "success" ]] ; then
-              echo "$1 ✅ $2"
-            else
-              echo "$1 ❌ $2"
-              failcount=$(( failcount + 1 ))
-            fi
-          }
-
-          process_result 'mocha_browser_build_default' '${{ steps.mocha_browser_build_default.outcome }}'
-          process_result 'mocha_browser_build_console' '${{ steps.mocha_browser_build_console.outcome }}'
-          process_result 'mocha_browser_build_html' '${{ steps.mocha_browser_build_html.outcome }}'
-          process_result 'mocha_browser_build_button' '${{ steps.mocha_browser_build_button.outcome }}'
-          process_result 'mocha_browser_build_load' '${{ steps.mocha_browser_build_load.outcome }}'
-
-          exit $failcount
+      - run: npm run mocha:browser:test
 
   actionlint:
     runs-on: ubuntu-latest

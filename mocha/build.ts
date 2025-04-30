@@ -10,8 +10,8 @@ async function main(): Promise<void> {
   const parsedArgs = parseArgs(process.argv.slice(2));
 
   const builderSettings: BuilderSettings = {
-    srcDir: __dirname,
-    destDir: path.normalize(path.join(__dirname, "..", "build", "mocha")),
+    srcDir: path.normalize(path.join(__dirname, "src")),
+    destDir: parsedArgs.destDir,
     nodeModulesDir: path.normalize(path.join(__dirname, "..", "node_modules")),
   };
 
@@ -26,7 +26,7 @@ async function main(): Promise<void> {
   const indexHtmlRenderContext: Record<string, unknown> = {};
   if (parsedArgs.ui === "console") {
     builder.runEsbuild(
-      path.join("mocha", "browser", "console_mocha_reporter.ts"),
+      path.join("mocha", "src", "console_mocha_reporter.ts"),
       "--global-name=console_mocha_reporter_s2he8g3fbt",
     );
     Object.assign(indexHtmlRenderContext, {
@@ -96,7 +96,7 @@ class Builder {
   runEsbuild(...args: string[]): void {
     this.#runEsbuild(
       "--bundle",
-      "--outdir=build/mocha",
+      `--outdir=${this.#destDir}`,
       "--sourcemap",
       "--platform=browser",
       "--format=iife",
@@ -136,10 +136,17 @@ class Builder {
 interface ParsedArgs {
   ui: "html" | "console";
   startTrigger: "button" | "load";
+  destDir: string;
 }
 
 function parseArgs(args: string[]): ParsedArgs {
-  const parsedArgs: ParsedArgs = { ui: "html", startTrigger: "load" };
+  const parsedArgs: ParsedArgs = {
+    ui: "html",
+    startTrigger: "load",
+    destDir: path.normalize(path.join(__dirname, "..", "build", "mocha")),
+  };
+
+  const destDirPrefix = "--destDir=";
   for (const arg of args) {
     if (arg == "--html") {
       parsedArgs.ui = "html";
@@ -149,6 +156,8 @@ function parseArgs(args: string[]): ParsedArgs {
       parsedArgs.startTrigger = "button";
     } else if (arg == "--load") {
       parsedArgs.startTrigger = "load";
+    } else if (arg.startsWith(destDirPrefix)) {
+      parsedArgs.destDir = arg.substring(destDirPrefix.length);
     } else {
       throw new Error(`unknown command-line argument: ${arg}`);
     }

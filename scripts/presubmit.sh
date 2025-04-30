@@ -36,10 +36,18 @@ else
   fail_count=$((fail_count + 1))
 fi
 
+if npm run mocha:browser:test ; then
+  readonly mocha_browser_test_result="$pass_result"
+else
+  readonly mocha_browser_test_result="$fail_result"
+  fail_count=$((fail_count + 1))
+fi
+
 echo "prettier: $prettier_result"
 echo "lint: $lint_result"
 echo "tsc: $tsc_result"
 echo "mocha: $mocha_result"
+echo "mocha_browser_test: $mocha_browser_test_result"
 
 if [[ $fail_count -gt 0 ]] ; then
   exit 1
