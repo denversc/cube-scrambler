@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import type { Suite } from "mocha";
 
 import { copyCube, CUBE_LENGTH, isCube, isEqualCube, moveR, solved } from "../src/cube";
@@ -6,6 +5,8 @@ import { getRandomElementFrom, getRandomIndexOf } from "../src/random";
 import { CubeStates, getSampleCubeStates1, getSolvedCubeStates } from "./cube.samples";
 import { nonArrayValues, randomColor, randomColorArray, randomCube } from "./cube.testing";
 import { initializeRngForEachTest, rng } from "./random.testing";
+
+const expect = chai.expect;
 
 describe("cube.test.ts [g7em876hy4]", function (this: Suite) {
   const seed = initializeRngForEachTest(this);

@@ -1,18 +1,20 @@
 import { mkdtemp } from "node:fs/promises";
-import type http from "node:http";
+import * as http from "node:http";
 import { tmpdir as getSystemTempDir } from "node:os";
 import path from "node:path";
 
+import { expect } from "chai";
 import { execa } from "execa";
 import express from "express";
+import fsExtra from "fs-extra";
 import puppeteer, {
   type Browser,
   type BrowserContext,
+  type ElementHandle,
   type LaunchOptions,
   type Page,
   TimeoutError as PuppeteerTimeoutError,
 } from "puppeteer";
-import { rimraf } from "rimraf";
 import signale from "signale";
 
 export type EsbuildUi = "html" | "console";
@@ -61,19 +63,29 @@ function undefinedValue<T>(): T {
 }
 
 export interface BrowserTestTools {
-  tempDir: string;
-  browser: Browser;
-  browserContext: BrowserContext;
-  page: Page;
+  readonly tempDir: string;
+  readonly browser: Browser;
+  readonly browserContext: BrowserContext;
+  readonly page: Page;
 
   gotoPage(ui: EsbuildUi, startTrigger: EsbuildStartTrigger): Promise<void>;
-  verifyNoMochaRunStartNotification(): Promise<void>;
+
+  waitForInitializedNotification(): Promise<void>;
   waitForMochaRunStartNotification(): Promise<void>;
-  verifyNoMochaRunDoneNotification(): Promise<void>;
+  verifyNoMochaRunStartNotification(): Promise<void>;
   waitForMochaRunDoneNotification(): Promise<void>;
-  getMochaDivInnerHtml(): Promise<string>;
+  verifyNoMochaRunDoneNotification(): Promise<void>;
+
   clickStartTestsButton(): Promise<void>;
+  verifyStartTestsButtonIsPresent(): Promise<void>;
+  verifyStartTestsButtonIsAbsent(): Promise<void>;
+
+  verifyMochaDivIsEmpty(): Promise<void>;
+  verifyMochaDivIsNotEmpty(): Promise<void>;
 }
+
+const startTestsButtonSelector = "#btnStartTests";
+const mochaDivSelector = "#mocha";
 
 class BrowserTestToolsImpl implements BrowserTestTools {
   tempDir: string = undefinedValue();
@@ -114,6 +126,10 @@ class BrowserTestToolsImpl implements BrowserTestTools {
     }
   }
 
+  async waitForInitializedNotification(): Promise<void> {
+    await this.page.waitForSelector("[data-wkmc78epyj-initialized]", { timeout: 1000 });
+  }
+
   async waitForMochaRunStartNotification(): Promise<void> {
     await this.page.waitForSelector("[data-wkmc78epyj-mocha-run-start]", { timeout: 1000 });
   }
@@ -146,12 +162,70 @@ class BrowserTestToolsImpl implements BrowserTestTools {
     });
   }
 
-  getMochaDivInnerHtml(): Promise<string> {
-    return this.page.$eval("#mocha", div => div.innerHTML);
+  verifyMochaDivIsEmpty(): Promise<void> {
+    return this.#verifyInnerHTMLIsEmpty(mochaDivSelector);
   }
 
-  clickStartTestsButton(): Promise<void> {
-    return this.page.$eval("#btnStartTests", button => button.click());
+  verifyMochaDivIsNotEmpty(): Promise<void> {
+    return this.#verifyInnerHTMLIsNotEmpty(mochaDivSelector);
+  }
+
+  async #getInnerHTMLOfElementWithSelector(selector: string): Promise<string> {
+    const elementHandle = await this.#getOnlyHTMLElementWithSelector(selector);
+    return await elementHandle.evaluate(element => element.innerHTML);
+  }
+
+  async #verifyInnerHTMLIsEmpty(selector: string): Promise<void> {
+    const innerHTML: string = await this.#getInnerHTMLOfElementWithSelector(selector);
+    const message = `HTML element with selector=${selector} should have empty "innerHTML"`;
+    expect(innerHTML, message).to.be.empty;
+  }
+
+  async #verifyInnerHTMLIsNotEmpty(selector: string): Promise<void> {
+    const innerHTML: string = await this.#getInnerHTMLOfElementWithSelector(selector);
+    const message = `HTML element with selector=${selector} should have non-empty "innerHTML"`;
+    expect(innerHTML, message).to.not.be.empty;
+  }
+
+  async clickStartTestsButton(): Promise<void> {
+    const elementHandle = await this.#getOnlyHTMLElementWithSelector(startTestsButtonSelector);
+    await elementHandle.click();
+  }
+
+  verifyStartTestsButtonIsPresent(): Promise<void> {
+    return this.#verifyNumElementsInPageMatchingSelector(startTestsButtonSelector, 1);
+  }
+
+  verifyStartTestsButtonIsAbsent(): Promise<void> {
+    return this.#verifyNumElementsInPageMatchingSelector(startTestsButtonSelector, 0);
+  }
+
+  async #verifyNumElementsInPageMatchingSelector(
+    selector: string,
+    expected: number,
+  ): Promise<void> {
+    const elementCount: number = await this.#getElementCountBySelector(selector);
+    const message = `found ${elementCount} HTML elements matching selector: ${selector}`;
+    expect(elementCount, message).to.equal(expected);
+  }
+
+  #getElementCountBySelector(selector: string): Promise<number> {
+    return this.page.$$eval(selector, elements => elements.length);
+  }
+
+  async #getOnlyHTMLElementWithSelector(selector: string): Promise<ElementHandle> {
+    const elementHandles = await this.page.$$(selector);
+    if (elementHandles.length === 0) {
+      throw new Error(
+        `No HTML element found that matches selector "${selector}", ` + "but expected exactly 1",
+      );
+    } else if (elementHandles.length > 1) {
+      throw new Error(
+        `${elementHandles.length} HTML elements found that match selector "${selector}", ` +
+          "but expected exactly 1",
+      );
+    }
+    return elementHandles[0]!;
   }
 
   get #httpServerPort(): number {
@@ -174,7 +248,7 @@ class BrowserTestToolsImpl implements BrowserTestTools {
     this.tempDir = undefinedValue();
     if (tempDir) {
       signale.note(`Deleting temporary directory: ${tempDir}`);
-      await rimraf(tempDir);
+      await fsExtra.remove(tempDir);
     }
   }
 

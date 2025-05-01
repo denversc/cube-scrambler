@@ -1,10 +1,8 @@
-import type { Stats } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 
 import { execa } from "execa";
 import fsExtra from "fs-extra";
-import { rimraf } from "rimraf";
 import signale from "signale";
 
 import type { MainConfig } from "./types";
@@ -14,6 +12,7 @@ function main(): Promise<void> {
 
   const config: BuildConfig = {
     srcDir: path.normalize(path.join(__dirname, "src")),
+    resourcesDir: path.normalize(path.join(__dirname, "resources")),
     destDir: parsedArgs.destDir,
     testsDir: path.normalize(path.join(__dirname, "..", "test")),
     nodeModulesDir: path.normalize(path.join(__dirname, "..", "node_modules")),
@@ -26,6 +25,7 @@ function main(): Promise<void> {
 
 interface BuildConfig {
   srcDir: string;
+  resourcesDir: string;
   testsDir: string;
   destDir: string;
   nodeModulesDir: string;
@@ -34,65 +34,94 @@ interface BuildConfig {
 }
 
 async function build(config: BuildConfig): Promise<void> {
-  const { srcDir, testsDir, destDir, nodeModulesDir } = config;
+  const { srcDir, resourcesDir, testsDir, destDir, nodeModulesDir, ui, startTrigger } = config;
 
-  await deleteDirectory(destDir);
-  await createDirectory(destDir);
-
-  await copyFileToDirectory(path.join(srcDir, "index.html"), destDir);
-  await copyFileToDirectory(path.join(srcDir, "favicon.svg"), destDir);
-
-  await copyDirectory(srcDir, path.join(destDir, "src"));
+  await emptyDirectory(destDir);
+  await copyDirectory(resourcesDir, destDir);
 
   const mochaNodeModulesDir = path.join(nodeModulesDir, "mocha");
   const mochaDestDir = path.join(destDir, "mocha");
   await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.js"), mochaDestDir);
   await copyFileToDirectory(path.join(mochaNodeModulesDir, "mocha.css"), mochaDestDir);
 
-  await execa({ preferLocal: true, cwd: destDir, stdio: "inherit" })("esbuild", [
-    "--bundle",
-    `${testsDir}/**/*.test.ts`,
-    "--outdir=js/tests",
-    "--platform=browser",
-    "--format=esm",
-    "--sourcemap",
-  ]);
+  const chaiNodeModulesDir = path.join(nodeModulesDir, "chai");
+  const chaiDestDir = path.join(destDir, "chai");
+  await copyFileToDirectory(path.join(chaiNodeModulesDir, "chai.js"), chaiDestDir);
 
-  const testModules: string[] = [];
-  for await (const testPath of fs.glob("**/*.test.js", {
-    cwd: path.join(destDir, "js", "tests"),
-  })) {
-    testModules.push("../tests/" + testPath);
-  }
+  const jsTestModules = await compileTestsJs({ destDir, testsDir });
+  await compileIndexJs({ srcDir, destDir, ui, startTrigger, jsTestModules });
+}
 
-  const mainConfig: MainConfig = {
-    ui: config.ui,
-    startTrigger: config.startTrigger,
-    testModules,
-  };
-  await execa({ preferLocal: true, cwd: destDir, stdio: "inherit" })("esbuild", [
-    "--bundle",
-    "src/index.ts",
-    "--outdir=js/src",
-    "--platform=browser",
-    "--format=esm",
-    "--sourcemap",
-    `--define:main_config_from_esbuild_ycvsy2qgg5=${JSON.stringify(mainConfig)}`,
-  ]);
+interface CompileIndexJsConfig {
+  srcDir: string;
+  destDir: string;
+  ui: MainConfig.Ui;
+  startTrigger: MainConfig.StartTrigger;
+  jsTestModules: string[];
 }
 
 /**
- * Deletes the given directory with all of its files, recursively.
- * If the directory does not exist then this function does nothing and returns as if successful.
- * @param directoryPath the path of the directory to delete.
+ * Compiles the "index.js" for import by the browser into a JavaScript module.
  */
-async function deleteDirectory(directoryPath: string): Promise<void> {
-  const destDirExists: boolean = await fsExtra.pathExists(directoryPath);
-  if (!destDirExists) {
-    return;
+async function compileIndexJs(config: CompileIndexJsConfig): Promise<void> {
+  const { srcDir, destDir, ui, startTrigger, jsTestModules: testModules } = config;
+  const mainConfig: MainConfig = { ui, startTrigger, testModules };
+  await runEsBuild(
+    { cwd: destDir },
+    path.join(srcDir, "index.ts"),
+    "--outdir=js/src",
+    `--define:main_config_from_esbuild_ycvsy2qgg5=${JSON.stringify(mainConfig)}`,
+  );
+}
+
+interface CompileTestsJsConfig {
+  destDir: string;
+  testsDir: string;
+}
+
+/**
+ * Compiles the mocha tests into individual JavaScript modules for use in the browser.
+ * @return the imports to issue in the browser to import the tests.
+ */
+async function compileTestsJs(config: CompileTestsJsConfig): Promise<string[]> {
+  const { destDir, testsDir } = config;
+  await runEsBuild({ cwd: destDir }, `${testsDir}/**/*.test.ts`, "--outdir=js/tests");
+
+  const jsTestModules: string[] = [];
+  for await (const testPath of fs.glob("**/*.test.js", {
+    cwd: path.join(destDir, "js", "tests"),
+  })) {
+    jsTestModules.push("../tests/" + testPath);
   }
-  signale.note(`Deleting directory: ${directoryPath}`);
-  await rimraf(directoryPath);
+
+  return jsTestModules;
+}
+
+/**
+ * Invokes the "esbuild" command to generate JavaScript browser code.
+ */
+async function runEsBuild(config: { cwd: string }, ...args: string[]): Promise<void> {
+  const allArgs = [
+    "esbuild",
+    "--bundle",
+    "--platform=browser",
+    "--format=esm",
+    "--sourcemap",
+    "--sources-content=true",
+    ...args,
+  ];
+
+  signale.note(`Running command: ${allArgs.join(" ")}`);
+  const execFunction = execa({ preferLocal: true, cwd: config.cwd, stdio: "inherit" });
+  await execFunction(allArgs[0]!, allArgs.slice(1));
+}
+
+/**
+ * Deletes the given directory with all of its files, recursively, then re-creates it.
+ */
+async function emptyDirectory(directoryPath: string): Promise<void> {
+  signale.note(`Emptying or creating directory: ${directoryPath}`);
+  await fsExtra.emptyDir(directoryPath);
 }
 
 /**
@@ -119,19 +148,17 @@ async function copyFileToDirectory(srcFile: string, destDir: string): Promise<vo
   await fs.copyFile(srcFile, destFile);
 }
 
-async function getPathType(fileSystemPath: string): Promise<"file" | "directory" | null> {
-  let statResult: Stats;
+/**
+ * Returns if the given file system path is a directory.
+ * @return true if the given path exists in the file system AND is a directory; false otherwise,
+ * including if determining whether it was a directory failed.
+ */
+async function isDirectory(fileSystemPath: string): Promise<boolean> {
   try {
-    statResult = await fs.stat(fileSystemPath);
-  } catch (_) {
-    return null;
-  }
-  if (statResult.isFile()) {
-    return "file";
-  } else if (statResult.isDirectory()) {
-    return "directory";
-  } else {
-    return null;
+    const statResult = await fs.stat(fileSystemPath);
+    return statResult.isDirectory();
+  } catch (_: unknown) {
+    return false;
   }
 }
 
@@ -140,86 +167,16 @@ async function getPathType(fileSystemPath: string): Promise<"file" | "directory"
  */
 async function copyDirectory(srcDir: string, destDir: string): Promise<void> {
   signale.note(`Copying directory ${srcDir} to ${destDir}`);
-  await createDirectory(destDir);
-  const tsConfigsForFixup: Array<{ srcFile: string; destFile: string }> = [];
-  const suffixesToCopy = new Set([".ts", ".json"]);
   // noinspection JSUnusedGlobalSymbols
-  const copyOptions: fsExtra.CopyOptions = {
-    async filter(srcPath, destPath): Promise<boolean> {
-      const srcType = await getPathType(srcPath);
-      if (srcType === "directory") {
-        return true;
-      } else if (srcType === null) {
-        return false;
-      } else if (srcType !== "file") {
-        throw new Error(`internal error: unexpected srcType: ${srcType} [d63ckpvy8n]`);
+  fsExtra.copy(srcDir, destDir, {
+    async filter(src: string, dest: string): Promise<boolean> {
+      const srcIsDirectory = await isDirectory(src);
+      if (!srcIsDirectory) {
+        signale.note(`Copying file ${src} to ${dest}`);
       }
-      for (const suffix of suffixesToCopy) {
-        if (srcPath.endsWith(suffix)) {
-          signale.note(`Copying file ${srcPath} to ${destPath}`);
-          if (path.basename(srcPath) == "tsconfig.json") {
-            tsConfigsForFixup.push({ srcFile: srcPath, destFile: destPath });
-          }
-          return true;
-        }
-      }
-      return false;
+      return true;
     },
-  };
-
-  await fsExtra.copy(srcDir, destDir, copyOptions);
-
-  for (const tsConfigCopySpec of tsConfigsForFixup) {
-    await fixupTsConfig(tsConfigCopySpec.destFile, path.dirname(tsConfigCopySpec.srcFile));
-  }
-}
-
-/**
- * Fixes up relatives paths in a tsconfig.json file that was copied to a different directory.
- */
-async function fixupTsConfig(tsConfigPath: string, baseDir: string): Promise<void> {
-  signale.note(`Fixing up relative paths in ${tsConfigPath} based on directory: ${baseDir}`);
-  const tsConfigBeforeText = await fs.readFile(tsConfigPath, { encoding: "utf8" });
-  let tsConfigBefore: unknown;
-  try {
-    tsConfigBefore = JSON.parse(tsConfigBeforeText);
-  } catch (error: unknown) {
-    signale.note(`Parsing JSON from ${tsConfigPath} failed: ${error}; skipping`);
-    return;
-  }
-
-  if (typeof tsConfigBefore !== "object") {
-    signale.note(
-      `Parsing JSON from ${tsConfigPath} produced ${typeof tsConfigBefore}, ` +
-        `but expected object; skipping`,
-    );
-    return;
-  }
-
-  const tsConfig = tsConfigBefore as unknown as Record<string, unknown>;
-  const extendsValue = tsConfig["extends"];
-  if (typeof extendsValue !== "string") {
-    signale.note(
-      `"extends" is not defined as a string in ${tsConfigPath} ` +
-        `(got ${typeof extendsValue}); skipping`,
-    );
-    return;
-  }
-
-  if (path.isAbsolute(extendsValue)) {
-    signale.note(
-      `"extends" defined in ${tsConfigPath} is already absolute: ${extendsValue}; nothing to do`,
-    );
-    return;
-  }
-
-  const newExtendsValue = path.normalize(path.join(baseDir, extendsValue));
-  signale.note(
-    `"extends" defined in ${tsConfigPath} changed to ${newExtendsValue} (was ${extendsValue})`,
-  );
-  tsConfig["extends"] = newExtendsValue;
-
-  await fs.writeFile(tsConfigPath, JSON.stringify(tsConfig, undefined, 2), { encoding: "utf8" });
+  });
 }
 
 interface ParsedArgs {

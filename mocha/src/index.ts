@@ -4,44 +4,51 @@ import { ConsoleMochaReporter } from "./console_mocha_reporter";
 declare const main_config_from_esbuild_ycvsy2qgg5: MainConfig;
 
 async function main(config: MainConfig): Promise<void> {
-  console.log("index.ts starting [ertgr37c2j]");
+  console.log("index.ts starting; config:", config, "[ertgr37c2j]");
   const { ui, startTrigger } = config;
 
-  mocha.setup("bdd");
-  mocha.checkLeaks();
-  mocha.failZero();
+  mocha.setup({
+    checkLeaks: true,
+    failZero: true,
+    reporter: reporterForUi(ui),
+    ui: "bdd",
+  });
+
+  const startTestsButton = configureStartTestsButton(ui, startTrigger);
 
   await Promise.all(config.testModules.map(testModule => import(testModule)));
 
-  console.log(`ui=${ui} [ertgr37c2j]`);
-  if (ui === "console") {
-    mocha.reporter(ConsoleMochaReporter as unknown as Mocha.ReporterConstructor);
-  } else if (ui === "html") {
-    getElementWithIdOrThrow("mocha").hidden = false;
-  } else {
-    throw new Error(`invalid value for "ui": ${ui} [b6r9vhk4a8]`);
+  if (startTestsButton) {
+    startTestsButton.disabled = false;
   }
 
   console.log(`startTrigger=${startTrigger} [ertgr37c2j]`);
-  if (startTrigger === "button") {
-    const button: HTMLButtonElement = getElementWithIdOrThrow("btnStartTests");
-    button.hidden = false;
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      button.disabled = true;
-      runMochaTests();
-    });
-  } else if (startTrigger === "load") {
-    setTimeout(runMochaTests);
+  if (startTrigger === "load") {
+    setTimeout(() => runMochaTests(ui));
+  } else if (startTrigger !== "button") {
+    throw new Error(`invalid MainConfig.StartTrigger: ${startTrigger} [t55578mqss]`);
+  }
+
+  sendNotification("initialized");
+}
+
+function reporterForUi(ui: MainConfig.Ui): string | Mocha.ReporterConstructor {
+  if (ui === "console") {
+    return ConsoleMochaReporter as unknown as Mocha.ReporterConstructor;
+  } else if (ui === "html") {
+    return "html";
   } else {
-    throw new Error(`invalid value for "startTrigger": ${startTrigger} [t55578mqss]`);
+    throw new Error(`invalid MainConfig.Ui value: ${ui} [b6r9vhk4a8]`);
   }
 }
 
-function runMochaTests() {
+function runMochaTests(ui: MainConfig.Ui) {
+  console.log("runMochaTests(); ui:", ui, "[ertgr37c2j]");
+
+  sendNotification("mocha-run-start");
+
   console.log("mocha.run() start [ertgr37c2j]");
   try {
-    sendNotification("mocha-run-start");
     mocha.run();
   } finally {
     console.log("mocha.run() done [ertgr37c2j]");
@@ -67,6 +74,26 @@ function getElementWithIdOrThrow<T extends HTMLElement = HTMLElement>(elementId:
     throw new Error(`HTML element with ID "${elementId}" not found [x28pvtvpk3]`);
   }
   return element as T;
+}
+
+function configureStartTestsButton(
+  ui: MainConfig.Ui,
+  startTrigger: MainConfig.StartTrigger,
+): HTMLButtonElement | null {
+  const button = getElementWithIdOrThrow<HTMLButtonElement>("btnStartTests");
+  if (startTrigger === "button") {
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      this.remove();
+      runMochaTests(ui);
+    });
+    return button;
+  } else if (startTrigger === "load") {
+    button.remove();
+    return null;
+  } else {
+    throw new Error(`invalid MainConfig.Ui: ${ui} [d4wamwcbes]`);
+  }
 }
 
 main(main_config_from_esbuild_ycvsy2qgg5);

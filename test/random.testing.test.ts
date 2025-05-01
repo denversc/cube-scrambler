@@ -1,12 +1,12 @@
-import { expect, use } from "chai";
-
 import { AleaRandomNumberGenerator } from "../src/random";
 import { initializeRng, rng } from "./random.testing";
 import { default as myChaiPlugin } from "./testing/chai_plugin";
 
+const expect = chai.expect;
+
 describe("random.testing.test.ts [rkp4trbyqe]", () => {
   before(() => {
-    use(myChaiPlugin);
+    chai.use(myChaiPlugin);
   });
 
   describe("initializeRng() [fahrsqbfa2]", () => {
