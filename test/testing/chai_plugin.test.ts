@@ -1,11 +1,12 @@
-import { expect, use } from "chai";
 import { type TestFunction } from "mocha";
 
 import { default as myChaiPlugin } from "./chai_plugin";
 
+const expect = chai.expect;
+
 describe("chai_plugin.test.ts [tvefkfakz2]", () => {
   before(() => {
-    use(myChaiPlugin);
+    chai.use(myChaiPlugin);
   });
 
   describe("iterable [v2ztqjq5q2]", () => {

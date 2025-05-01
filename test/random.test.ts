@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import type { Suite } from "mocha";
 
 import { Alea } from "../src/alea";
@@ -14,6 +13,8 @@ import {
   rng,
   ThrowingRandomNumberGenerator,
 } from "./random.testing";
+
+const expect = chai.expect;
 
 describe("random.test.ts [mq8ewq77j9]", function (this: Suite) {
   initializeRngForEachTest(this);

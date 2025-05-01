@@ -1,9 +1,4 @@
-import { Assertion } from "chai";
-
 declare global {
-  // TODO: Fix the global declaration below to satisfy the "no-namespace" check.
-  // See https://typescript-eslint.io/rules/no-namespace/
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Chai {
     interface Assertion {
       /**
@@ -83,8 +78,8 @@ function chaiPlugin(chai: Chai.ChaiStatic, util: Chai.ChaiUtils): void {
   }
   registrations.add(chai);
 
-  util.addProperty(Assertion.prototype, "iterable", iterableChaiProperty);
-  util.addProperty(Assertion.prototype, "distinct", distinctChaiProperty);
+  util.addProperty(chai.Assertion.prototype, "iterable", iterableChaiProperty);
+  util.addProperty(chai.Assertion.prototype, "distinct", distinctChaiProperty);
 }
 
 export default chaiPlugin;

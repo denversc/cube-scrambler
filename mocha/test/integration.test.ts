@@ -1,5 +1,3 @@
-import { expect } from "chai";
-
 import { setupBrowserTestTools } from "./integration.testing";
 
 describe("integration.test.ts [j3f27kxwtt]", () => {
@@ -7,47 +5,45 @@ describe("integration.test.ts [j3f27kxwtt]", () => {
 
   it("reporter=html startTrigger=load [m8zbx9643t]", async () => {
     await tools.gotoPage("html", "load");
+    await tools.waitForInitializedNotification();
+    await tools.verifyStartTestsButtonIsAbsent();
+
     await tools.waitForMochaRunStartNotification();
     await tools.waitForMochaRunDoneNotification();
-    const divHtml = await tools.getMochaDivInnerHtml();
-    expect(divHtml).is.not.empty;
+    await tools.verifyMochaDivIsNotEmpty();
   });
 
   it("reporter=console startTrigger=load [f4d34rf57e]", async () => {
     await tools.gotoPage("console", "load");
+    await tools.waitForInitializedNotification();
+    await tools.verifyStartTestsButtonIsAbsent();
+
     await tools.waitForMochaRunStartNotification();
     await tools.waitForMochaRunDoneNotification();
-    const divHtml = await tools.getMochaDivInnerHtml();
-    expect(divHtml).is.empty;
+    await tools.verifyMochaDivIsEmpty();
   });
 
-  it("reporter=html startTrigger=button [m8zbx9643t]", async () => {
+  it("reporter=html startTrigger=button [a3rx6syg3p]", async () => {
     await tools.gotoPage("html", "button");
-
+    await tools.waitForInitializedNotification();
+    await tools.verifyStartTestsButtonIsPresent();
     await tools.verifyNoMochaRunStartNotification();
-    const divHtml1 = await tools.getMochaDivInnerHtml();
-    expect(divHtml1, "divHtml1").is.empty;
 
     await tools.clickStartTestsButton();
     await tools.waitForMochaRunStartNotification();
     await tools.waitForMochaRunDoneNotification();
-
-    const divHtml2 = await tools.getMochaDivInnerHtml();
-    expect(divHtml2, "divHtml2").is.not.empty;
+    await tools.verifyMochaDivIsNotEmpty();
   });
 
-  it("reporter=console startTrigger=button [m8zbx9643t]", async () => {
+  it("reporter=console startTrigger=button [xr7wxrnxyp]", async () => {
     await tools.gotoPage("console", "button");
-
+    await tools.waitForInitializedNotification();
+    await tools.verifyStartTestsButtonIsPresent();
     await tools.verifyNoMochaRunStartNotification();
-    const divHtml1 = await tools.getMochaDivInnerHtml();
-    expect(divHtml1, "divHtml1").is.empty;
 
     await tools.clickStartTestsButton();
     await tools.waitForMochaRunStartNotification();
     await tools.waitForMochaRunDoneNotification();
-
-    const divHtml2 = await tools.getMochaDivInnerHtml();
-    expect(divHtml2, "divHtml2").is.empty;
+    await tools.verifyMochaDivIsEmpty();
   });
 });
