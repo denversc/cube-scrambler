@@ -76,6 +76,24 @@ jobs:
 
       - run: npm run lint:check
 
+  mocha-browser-serve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.E5VFCV_NODE_VERSION }}
+
+      - run: npm clean-install --fund=false --audit=false
+
+      # Specify --exit-immediately so that it doesn't hang indefinitely.
+      # This test basically just verifies that the command launches, but
+      # nothing more than that.
+      - run: npm run mocha:browser:serve -- --exit-immediately
+
   mocha-browser-build:
     runs-on: ubuntu-latest
     steps:

@@ -48,6 +48,16 @@ else
   fail_count=$((fail_count + 1))
 fi
 
+readonly mocha_browser_serve_args=(npm run mocha:browser:serve -- --exit-immediately)
+echo "==============================================================================="
+echo "${mocha_browser_serve_args[*]}"
+if "${mocha_browser_serve_args[@]}" ; then
+  readonly mocha_browser_serve_result="$pass_result"
+else
+  readonly mocha_browser_serve_result="$fail_result"
+  fail_count=$((fail_count + 1))
+fi
+
 readonly mocha_browser_build_args=(npm run mocha:browser:build)
 echo "==============================================================================="
 echo "${mocha_browser_build_args[*]}"
@@ -73,6 +83,7 @@ echo "${prettier_args[*]}: $prettier_result"
 echo "${lint_args[*]}: $lint_result"
 echo "${tsc_args[*]}: $tsc_result"
 echo "${mocha_args[*]}: $mocha_result"
+echo "${mocha_browser_serve_args[*]}: $mocha_browser_serve_result"
 echo "${mocha_browser_build_args[*]}: $mocha_browser_build_result"
 echo "${mocha_browser_test_args[*]}: $mocha_browser_test_result"
 
