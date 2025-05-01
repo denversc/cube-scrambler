@@ -76,7 +76,22 @@ jobs:
 
       - run: npm run lint:check
 
-  mocha-browser:
+  mocha-browser-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.E5VFCV_NODE_VERSION }}
+
+      - run: npm clean-install --fund=false --audit=false
+
+      - run: npm run mocha:browser:build
+
+  mocha-browser-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
