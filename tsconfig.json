@@ -6,6 +6,7 @@
     { "path": "./mocha/src" },
     { "path": "./mocha/test" },
     { "path": "./mocha/types" },
+    { "path": "./scripts" },
     { "path": "./src" },
     { "path": "./src/browser" },
     { "path": "./src/node" },
