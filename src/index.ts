@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   type Cube,
   type Face,
@@ -28,7 +30,6 @@ function runScramble(scramble?: Move[]) {
     console.log("Move:", move);
     transform(cube, move);
     draw(cube);
-    log(cube);
     console.log();
   }
   console.log(scramble.join(", "));
