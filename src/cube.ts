@@ -1,267 +1,1075 @@
-import {
-  getRandomElementFrom,
-  MathRandomRandomNumberGenerator,
-  type RandomNumberGenerator,
-} from "./random";
+import { inspect } from "#platform";
 
-export const CUBE_LENGTH = 54;
+import { unreachable } from "./util/unreachable";
 
-export function solved(): Cube {
-  // prettier-ignore
-  const cube: Cube = Object.seal([
-    "green", "green", "green", "green", "green", "green", "green", "green", "green",
-    "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange",
-    "blue", "blue", "blue", "blue", "blue", "blue", "blue", "blue", "blue",
-    "red", "red", "red", "red", "red", "red", "red", "red", "red",
-    "white", "white", "white", "white", "white", "white", "white", "white", "white",
-    "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow",
-  ]);
-  if (cube.length !== CUBE_LENGTH) {
-    throw new Error(
-      `internal error y9wf7jvh2q: cube.length==${cube.length}, but expected ${CUBE_LENGTH}`,
-    );
-  }
-  return cube;
+export type Color = "Blue" | "Green" | "Orange" | "Red" | "White" | "Yellow";
+
+export interface Colors {
+  Blue: "Blue";
+  Green: "Green";
+  Orange: "Orange";
+  Red: "Red";
+  White: "White";
+  Yellow: "Yellow";
 }
 
-export interface ScrambleOptions {
-  numMoves?: number;
-  rng?: RandomNumberGenerator;
+export const Colors: Readonly<Colors> = Object.freeze({
+  Blue: "Blue",
+  Green: "Green",
+  Orange: "Orange",
+  Red: "Red",
+  White: "White",
+  Yellow: "Yellow",
+} satisfies Colors);
+
+export type Face = "Back" | "Down" | "Front" | "Left" | "Right" | "Up";
+
+export interface Faces {
+  Back: "Back";
+  Down: "Down";
+  Front: "Front";
+  Left: "Left";
+  Right: "Right";
+  Up: "Up";
 }
 
-export function scramble(cube: Cube, options?: ScrambleOptions): void {
-  const numMoves = options?.numMoves ?? 25;
-  if (numMoves < 0) {
-    throw new Error(
-      `invalid number of moves: ${numMoves} ` +
-        `(must be greater than or equal to 0) ` +
-        `(error code a3phx79vb4)`,
-    );
-  }
-  const rng = options?.rng ?? new MathRandomRandomNumberGenerator();
+export const Faces: Readonly<Faces> = Object.freeze({
+  Back: "Back",
+  Down: "Down",
+  Front: "Front",
+  Left: "Left",
+  Right: "Right",
+  Up: "Up",
+} satisfies Faces);
 
-  for (let i = 0; i < numMoves; i++) {
-    const move = getRandomElementFrom(allMoves, rng);
-    performMove(cube, move);
-  }
+export interface FaceRanges {
+  Back: Readonly<[9, 18]>;
+  Down: Readonly<[45, 54]>;
+  Front: Readonly<[0, 9]>;
+  Left: Readonly<[27, 36]>;
+  Right: Readonly<[18, 27]>;
+  Up: Readonly<[36, 45]>;
 }
 
-export function performMove(cube: Cube, move: Move): void {
-  const moveFunction = moveFunctionByMove[move];
-  moveFunction(cube);
-}
+export const FaceRanges: Readonly<FaceRanges> = Object.freeze({
+  Back: Object.freeze([9, 18]),
+  Down: Object.freeze([45, 54]),
+  Front: Object.freeze([0, 9]),
+  Left: Object.freeze([27, 36]),
+  Right: Object.freeze([18, 27]),
+  Up: Object.freeze([36, 45]),
+} satisfies FaceRanges);
 
-const moveFunctionByMove: Record<Move, (cube: Cube) => void> = Object.freeze({
-  "R": moveR,
-  "R'": moveRPrime,
-  "R2": moveR2,
-  "L": moveL,
-  "L'": moveLPrime,
-  "L2": moveL2,
-  "F": moveF,
-  "F'": moveFPrime,
-  "F2": moveF2,
-  "B": moveB,
-  "B'": moveBPrime,
-  "B2": moveB2,
-  "U": moveU,
-  "U'": moveUPrime,
-  "U2": moveU2,
-  "D": moveD,
-  "D'": moveDPrime,
-  "D2": moveD2,
-});
+const CubeIndexes = {
+  Back: {
+    BottomLeft: 15,
+    BottomMiddle: 16,
+    BottomRight: 17,
+    MiddleLeft: 12,
+    MiddleMiddle: 13,
+    MiddleRight: 14,
+    TopLeft: 9,
+    TopMiddle: 10,
+    TopRight: 11,
+  } as const,
+  Down: {
+    BottomLeft: 51,
+    BottomMiddle: 52,
+    BottomRight: 53,
+    MiddleLeft: 48,
+    MiddleMiddle: 49,
+    MiddleRight: 50,
+    TopLeft: 45,
+    TopMiddle: 46,
+    TopRight: 47,
+  } as const,
+  Front: {
+    BottomLeft: 6,
+    BottomMiddle: 7,
+    BottomRight: 8,
+    MiddleLeft: 3,
+    MiddleMiddle: 4,
+    MiddleRight: 5,
+    TopLeft: 0,
+    TopMiddle: 1,
+    TopRight: 2,
+  } as const,
+  Left: {
+    BottomLeft: 33,
+    BottomMiddle: 34,
+    BottomRight: 35,
+    MiddleLeft: 30,
+    MiddleMiddle: 31,
+    MiddleRight: 32,
+    TopLeft: 27,
+    TopMiddle: 28,
+    TopRight: 29,
+  } as const,
+  Right: {
+    BottomLeft: 24,
+    BottomMiddle: 25,
+    BottomRight: 26,
+    MiddleLeft: 21,
+    MiddleMiddle: 22,
+    MiddleRight: 23,
+    TopLeft: 18,
+    TopMiddle: 19,
+    TopRight: 20,
+  } as const,
+  Up: {
+    BottomLeft: 42,
+    BottomMiddle: 43,
+    BottomRight: 44,
+    MiddleLeft: 39,
+    MiddleMiddle: 40,
+    MiddleRight: 41,
+    TopLeft: 36,
+    TopMiddle: 37,
+    TopRight: 38,
+  } as const,
+} as const;
 
-export function moveR(cube: Cube): void {
-  rotate(cube, 2, 38, 20, 47);
-  rotate(cube, 5, 41, 23, 50);
-  rotate(cube, 8, 44, 26, 53);
-  rotate(cube, 27, 29, 35, 33);
-  rotate(cube, 28, 32, 34, 30);
-}
-
-function rotate<K extends number>(
-  cube: Cube,
-  index1: K extends keyof Cube ? K : never,
-  index2: K extends keyof Cube ? K : never,
-  index3: K extends keyof Cube ? K : never,
-  index4: K extends keyof Cube ? K : never,
-): void {
-  const index4Color = cube[index4];
-  cube[index4] = cube[index3];
-  cube[index3] = cube[index2];
-  cube[index2] = cube[index1];
-  cube[index1] = index4Color;
-}
-
-export function moveRPrime(cube: Cube): void {
-  throw new Error(`moveRPrime() is not yet implemented cube=${cube} (error code nbfy9b5maj)`);
-}
-
-export function moveR2(cube: Cube): void {
-  throw new Error(`moveR2() is not yet implemented cube=${cube} (error code xea8xd83ba)`);
-}
-
-export function moveL(cube: Cube): void {
-  throw new Error(`moveL() is not yet implemented cube=${cube} (error code df2t5ctgc3)`);
-}
-
-export function moveLPrime(cube: Cube): void {
-  throw new Error(`moveLPrime() is not yet implemented cube=${cube} (error code kfmnjg3t39)`);
-}
-
-export function moveL2(cube: Cube): void {
-  throw new Error(`moveL2() is not yet implemented cube=${cube} (error code qfkn4x4q9k)`);
-}
-
-export function moveF(cube: Cube): void {
-  throw new Error(`moveF() is not yet implemented cube=${cube} (error code cr6f4nbc9a)`);
-}
-
-export function moveFPrime(cube: Cube): void {
-  throw new Error(`moveFPrime() is not yet implemented cube=${cube} (error code ydgwbqydzn)`);
-}
-
-export function moveF2(cube: Cube): void {
-  throw new Error(`moveF2() is not yet implemented cube=${cube} (error code yztts76wc4)`);
-}
-
-export function moveB(cube: Cube): void {
-  throw new Error(`moveB() is not yet implemented cube=${cube} (error code rswdt7dtzv)`);
-}
-
-export function moveBPrime(cube: Cube): void {
-  throw new Error(`moveBPrime() is not yet implemented cube=${cube} (error code ppzawshv5k)`);
-}
-
-export function moveB2(cube: Cube): void {
-  throw new Error(`moveB2() is not yet implemented cube=${cube} (error code bx9pvs73nr)`);
-}
-
-export function moveU(cube: Cube): void {
-  throw new Error(`moveU() is not yet implemented cube=${cube} (error code zz3fsr8ahf)`);
-}
-
-export function moveUPrime(cube: Cube): void {
-  throw new Error(`moveUPrime() is not yet implemented cube=${cube} (error code yrw9nd85ze)`);
-}
-
-export function moveU2(cube: Cube): void {
-  throw new Error(`moveU2() is not yet implemented cube=${cube} (error code nx45f9f2xg)`);
-}
-
-export function moveD(cube: Cube): void {
-  throw new Error(`moveD() is not yet implemented cube=${cube} (error code vyqwck5byt)`);
-}
-
-export function moveDPrime(cube: Cube): void {
-  throw new Error(`moveDPrime() is not yet implemented cube=${cube} (error code xz4548dxwg)`);
-}
-
-export function moveD2(cube: Cube): void {
-  throw new Error(`moveD2() is not yet implemented cube=${cube} (error code jp2rhyczas)`);
-}
-
-export type Color = "green" | "red" | "orange" | "blue" | "white" | "yellow";
-
-export const allColors: readonly Color[] = Object.freeze([
-  "green",
-  "red",
-  "orange",
-  "blue",
-  "white",
-  "yellow",
-]);
-
-export function isColor(value: unknown): value is Color {
-  return (allColors as unknown[]).includes(value);
-}
-
-export type Side = "front" | "left" | "right" | "back" | "top" | "bottom";
-
-// prettier-ignore
-export type Move =
-  | "R" | "R'" | "R2"
-  | "L" | "L'" | "L2"
-  | "F" | "F'" | "F2"
-  | "B" | "B'" | "B2"
-  | "U" | "U'" | "U2"
-  | "D" | "D'" | "D2";
-
-// prettier-ignore
-const allMoves: readonly Move[] = Object.freeze([
-  "R", "R'", "R2",
-  "L", "L'", "L2",
-  "F", "F'", "F2",
-  "B", "B'", "B2",
-  "U", "U'", "U2",
-  "D", "D'", "D2",
-]);
-
-export function isMove(value: unknown): value is Move {
-  return (allMoves as unknown[]).includes(value);
-}
-
-// prettier-ignore
+/**
+ * An array that represents the state of a Rubik's cube.
+ * Each face of the cube is represented by 9 entries in the array.
+ * Since there are 6 faces the array has a length of 9 x 6 = 54.
+ * The index ranges for each face are defined in the `FaceRanges` object.
+ *
+ * The colors of each of the 9 stickers on each face are in order from top-left to bottom-right.
+ *
+ * Front: The "top-left" of the `Right` face is the sticker on the top left when looking directly at
+ * the front. This is the "obvious" face, and the other faces' "top-left" are taken relative to this
+ * perspective.
+ *
+ * Back: The "top-left" of the `Back` face is the sticker on the top left if the cube is rotated
+ * two turns to the right (or to the left).
+ *
+ * Right: The "top-left" of the `Right` face is the sticker on the top left if the cube is rotated
+ * one turn to the left.
+ *
+ * Left: The "top-left" of the `Left` face is the sticker on the top left if the cube is rotated
+ * one turn to the right.
+ *
+ * Up: The "top-left" of the `Up` face is the sticker on the top left if the cube is rotated one
+ * turn in the "down" direction.
+ *
+ * Down: The "top-left" of the `Down` face is the sticker on the top left if the cube is rotated
+ * one turn in the "up" direction.
+ */
 export type Cube = [
-  // 0-8: Front/Green face
-  Color, Color, Color,    // 0,  1,  2: top row left to right
-  Color, "green", Color,  // 3,  4,  5: middle row left to right
-  Color, Color, Color,    // 6,  7,  8: bottom row left to right
-
-  // 9-17: Left/Orange face
-  Color, Color, Color,    //  9,  10,  11: top row left to right
-  Color, "orange", Color, // 12,  13,  14: middle row left to right
-  Color, Color, Color,    // 15,  16,  17: bottom row left to right
-
-  // 18-26: Back/Blue face
-  Color, Color, Color,    // 18,  19,  20: bottom row left to right
-  Color, "blue", Color,   // 21,  22,  23: middle row left to right
-  Color, Color, Color,    // 24,  25,  26: top row left to right
-
-  // 27-35: Right/Red face
-  Color, Color, Color,    // 27,  28,  29: top row left to right
-  Color, "red", Color,    // 30,  31,  32: middle row left to right
-  Color, Color, Color,    // 33,  34,  35: bottom row left to right
-
-  // 36-44: Top/White face
-  Color, Color, Color,    // 36,  37,  38: back row left to right
-  Color, "white", Color,  // 39,  40,  41: middle row left to right
-  Color, Color, Color,    // 42,  43,  44: front row left to right
-
-  // 45-53: Bottom/Yellow face
-  Color, Color, Color,    // 45,  46,  47: front row left to right
-  Color, "yellow", Color, // 48,  49,  50: middle row left to right
-  Color, Color, Color,    // 51,  52,  53: back row left to right
+  // Front
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  // Back
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  // Right
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  // Left
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  // Up
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  // Down
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
+  Color,
 ];
 
-export function copyCube(cube: Cube): Cube {
-  return Array.from(cube) as Cube;
+export type FaceStickers = [Color, Color, Color, Color, Color, Color, Color, Color, Color];
+
+export type Move =
+  | "B2"
+  | "B"
+  | "B'"
+  | "D2"
+  | "D"
+  | "D'"
+  | "E2"
+  | "E"
+  | "E'"
+  | "F2"
+  | "F"
+  | "F'"
+  | "L2"
+  | "L"
+  | "L'"
+  | "M2"
+  | "M"
+  | "M'"
+  | "R2"
+  | "R"
+  | "R'"
+  | "S2"
+  | "S"
+  | "S'"
+  | "U2"
+  | "U"
+  | "U'"
+  | "x2"
+  | "x"
+  | "x'"
+  | "y2"
+  | "y"
+  | "y'"
+  | "z2"
+  | "z"
+  | "z'";
+
+export interface ScrambleOptions {
+  candidateMoves: Readonly<Move[]>;
+  moveCount: number;
+  random: () => number;
 }
 
-export function isEqualCube(cube1: Cube, cube2: Cube): boolean {
-  if (cube1.length !== cube2.length) {
-    return false;
-  }
-  for (let i = 0; i < cube1.length; i++) {
-    if (cube1[i] !== cube2[i]) {
-      return false;
+export function solvedCube(): Cube {
+  return [
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Green",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Blue",
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Red",
+    "Orange",
+    "Orange",
+    "Orange",
+    "Orange",
+    "Orange",
+    "Orange",
+    "Orange",
+    "Orange",
+    "Orange",
+    "White",
+    "White",
+    "White",
+    "White",
+    "White",
+    "White",
+    "White",
+    "White",
+    "White",
+    "Yellow",
+    "Yellow",
+    "Yellow",
+    "Yellow",
+    "Yellow",
+    "Yellow",
+    "Yellow",
+    "Yellow",
+    "Yellow",
+  ];
+}
+export function transform(cube: Cube, move: Move): void {
+  switch (move) {
+    case "B": {
+      transformB(cube);
+      break;
+    }
+    case "B2": {
+      transformB2(cube);
+      break;
+    }
+    case "B'": {
+      transformBPrime(cube);
+      break;
+    }
+    case "D": {
+      transformD(cube);
+      break;
+    }
+    case "D2": {
+      transformD2(cube);
+      break;
+    }
+    case "D'": {
+      transformDPrime(cube);
+      break;
+    }
+    case "E": {
+      transformE(cube);
+      break;
+    }
+    case "E2": {
+      transformE2(cube);
+      break;
+    }
+    case "E'": {
+      transformEPrime(cube);
+      break;
+    }
+    case "F": {
+      transformF(cube);
+      break;
+    }
+    case "F2": {
+      transformF2(cube);
+      break;
+    }
+    case "F'": {
+      transformFPrime(cube);
+      break;
+    }
+    case "L": {
+      transformL(cube);
+      break;
+    }
+    case "L2": {
+      transformL2(cube);
+      break;
+    }
+    case "L'": {
+      transformLPrime(cube);
+      break;
+    }
+    case "M": {
+      transformM(cube);
+      break;
+    }
+    case "M2": {
+      transformM2(cube);
+      break;
+    }
+    case "M'": {
+      transformMPrime(cube);
+      break;
+    }
+    case "R": {
+      transformR(cube);
+      break;
+    }
+    case "R2": {
+      transformR2(cube);
+      break;
+    }
+    case "R'": {
+      transformRPrime(cube);
+      break;
+    }
+    case "S": {
+      transformS(cube);
+      break;
+    }
+    case "S2": {
+      transformS2(cube);
+      break;
+    }
+    case "S'": {
+      transformSPrime(cube);
+      break;
+    }
+    case "U": {
+      transformU(cube);
+      break;
+    }
+    case "U2": {
+      transformU2(cube);
+      break;
+    }
+    case "U'": {
+      transformUPrime(cube);
+      break;
+    }
+    case "x": {
+      transformX(cube);
+      break;
+    }
+    case "x2": {
+      transformX2(cube);
+      break;
+    }
+    case "x'": {
+      transformXPrime(cube);
+      break;
+    }
+    case "y": {
+      transformY(cube);
+      break;
+    }
+    case "y2": {
+      transformY2(cube);
+      break;
+    }
+    case "y'": {
+      transformYPrime(cube);
+      break;
+    }
+    case "z": {
+      transformZ(cube);
+      break;
+    }
+    case "z2": {
+      transformZ2(cube);
+      break;
+    }
+    case "z'": {
+      transformZPrime(cube);
+      break;
+    }
+    default: {
+      unreachable(move, "invalid move [yzb9429gkk]");
     }
   }
-  return true;
 }
 
-export function isCube(value: unknown): value is Cube {
-  if (!Array.isArray(value)) {
-    return false;
+/** Rotates the Back face of the given Cube one turn clockwise. */
+export function transformB(cube: Cube): void {
+  rotateFaceClockwise(cube, "Back");
+
+  // Adjacent corners 1.
+  {
+    const originalUpTopLeftColor = cube[CubeIndexes.Up.TopLeft];
+    cube[CubeIndexes.Up.TopLeft] = cube[CubeIndexes.Right.TopRight];
+    cube[CubeIndexes.Right.TopRight] = cube[CubeIndexes.Down.BottomRight];
+    cube[CubeIndexes.Down.BottomRight] = cube[CubeIndexes.Left.BottomLeft];
+    cube[CubeIndexes.Left.BottomLeft] = originalUpTopLeftColor;
   }
-  if (value.length !== CUBE_LENGTH) {
-    return false;
+
+  // Adjacent corners 2.
+  {
+    const originalUpTopRightColor = cube[CubeIndexes.Up.TopRight];
+    cube[CubeIndexes.Up.TopRight] = cube[CubeIndexes.Right.BottomRight];
+    cube[CubeIndexes.Right.BottomRight] = cube[CubeIndexes.Down.BottomLeft];
+    cube[CubeIndexes.Down.BottomLeft] = cube[CubeIndexes.Left.TopLeft];
+    cube[CubeIndexes.Left.TopLeft] = originalUpTopRightColor;
   }
-  for (let i = 0; i < value.length; i++) {
-    if (!isColor(value[i])) {
-      return false;
+
+  // Adjacent edges.
+  {
+    const originalUpTopMiddleColor = cube[CubeIndexes.Up.TopMiddle];
+    cube[CubeIndexes.Up.TopMiddle] = cube[CubeIndexes.Right.MiddleRight];
+    cube[CubeIndexes.Right.MiddleRight] = cube[CubeIndexes.Down.BottomMiddle];
+    cube[CubeIndexes.Down.BottomMiddle] = cube[CubeIndexes.Left.MiddleLeft];
+    cube[CubeIndexes.Left.MiddleLeft] = originalUpTopMiddleColor;
+  }
+}
+
+/** Rotates the Back face of the given Cube two turns. */
+export function transformB2(cube: Cube): void {
+  transformB(cube);
+  transformB(cube);
+}
+
+/** Rotates the Back face of the given Cube one turn counterclockwise. */
+export function transformBPrime(cube: Cube): void {
+  transformB(cube);
+  transformB(cube);
+  transformB(cube);
+}
+
+/** Rotates the Down face of the given Cube one turn clockwise. */
+export function transformD(cube: Cube): void {
+  rotateFaceClockwise(cube, "Down");
+
+  // Adjacent corners 1.
+  {
+    const originalFrontBottomRightColor = cube[CubeIndexes.Front.BottomRight];
+    cube[CubeIndexes.Front.BottomRight] = cube[CubeIndexes.Left.BottomRight];
+    cube[CubeIndexes.Left.BottomRight] = cube[CubeIndexes.Back.BottomRight];
+    cube[CubeIndexes.Back.BottomRight] = cube[CubeIndexes.Right.BottomRight];
+    cube[CubeIndexes.Right.BottomRight] = originalFrontBottomRightColor;
+  }
+
+  // Adjacent corners 2.
+  {
+    const originalFrontBottomLeftColor = cube[CubeIndexes.Front.BottomLeft];
+    cube[CubeIndexes.Front.BottomLeft] = cube[CubeIndexes.Left.BottomLeft];
+    cube[CubeIndexes.Left.BottomLeft] = cube[CubeIndexes.Back.BottomLeft];
+    cube[CubeIndexes.Back.BottomLeft] = cube[CubeIndexes.Right.BottomLeft];
+    cube[CubeIndexes.Right.BottomLeft] = originalFrontBottomLeftColor;
+  }
+
+  // Adjacent edges.
+  {
+    const originalFrontBottomMiddleColor = cube[CubeIndexes.Front.BottomMiddle];
+    cube[CubeIndexes.Front.BottomMiddle] = cube[CubeIndexes.Left.BottomMiddle];
+    cube[CubeIndexes.Left.BottomMiddle] = cube[CubeIndexes.Back.BottomMiddle];
+    cube[CubeIndexes.Back.BottomMiddle] = cube[CubeIndexes.Right.BottomMiddle];
+    cube[CubeIndexes.Right.BottomMiddle] = originalFrontBottomMiddleColor;
+  }
+}
+
+/** Rotates the Down face of the given Cube two turns. */
+export function transformD2(cube: Cube): void {
+  transformD(cube);
+  transformD(cube);
+}
+
+/** Rotates the Down face of the given Cube one turn counterclockwise. */
+export function transformDPrime(cube: Cube): void {
+  transformD(cube);
+  transformD(cube);
+  transformD(cube);
+}
+
+/** Rotates the middle slice between U and D clockwise (like D). */
+export function transformE(cube: Cube): void {
+  {
+    const originalFrontMiddleLeftColor = cube[CubeIndexes.Front.MiddleLeft];
+    cube[CubeIndexes.Front.MiddleLeft] = cube[CubeIndexes.Left.MiddleLeft];
+    cube[CubeIndexes.Left.MiddleLeft] = cube[CubeIndexes.Back.MiddleLeft];
+    cube[CubeIndexes.Back.MiddleLeft] = cube[CubeIndexes.Right.MiddleLeft];
+    cube[CubeIndexes.Right.MiddleLeft] = originalFrontMiddleLeftColor;
+  }
+
+  {
+    const originalFrontMiddleMiddleColor = cube[CubeIndexes.Front.MiddleMiddle];
+    cube[CubeIndexes.Front.MiddleMiddle] = cube[CubeIndexes.Left.MiddleMiddle];
+    cube[CubeIndexes.Left.MiddleMiddle] = cube[CubeIndexes.Back.MiddleMiddle];
+    cube[CubeIndexes.Back.MiddleMiddle] = cube[CubeIndexes.Right.MiddleMiddle];
+    cube[CubeIndexes.Right.MiddleMiddle] = originalFrontMiddleMiddleColor;
+  }
+
+  {
+    const originalFrontMiddleRightColor = cube[CubeIndexes.Front.MiddleRight];
+    cube[CubeIndexes.Front.MiddleRight] = cube[CubeIndexes.Left.MiddleRight];
+    cube[CubeIndexes.Left.MiddleRight] = cube[CubeIndexes.Back.MiddleRight];
+    cube[CubeIndexes.Back.MiddleRight] = cube[CubeIndexes.Right.MiddleRight];
+    cube[CubeIndexes.Right.MiddleRight] = originalFrontMiddleRightColor;
+  }
+}
+
+/** Rotates the middle slice between U and D two turns. */
+export function transformE2(cube: Cube): void {
+  transformE(cube);
+  transformE(cube);
+}
+
+/** Rotates the middle slice between U and D counter-clockwise (like D'). */
+export function transformEPrime(cube: Cube): void {
+  transformE(cube);
+  transformE(cube);
+  transformE(cube);
+}
+
+/** Rotates the Front face of the given Cube one turn clockwise. */
+export function transformF(cube: Cube): void {
+  rotateFaceClockwise(cube, "Front");
+
+  // Adjacent corners 1.
+  {
+    const originalUpBottomLeftColor = cube[CubeIndexes.Up.BottomLeft];
+    cube[CubeIndexes.Up.BottomLeft] = cube[CubeIndexes.Left.BottomRight];
+    cube[CubeIndexes.Left.BottomRight] = cube[CubeIndexes.Down.TopRight];
+    cube[CubeIndexes.Down.TopRight] = cube[CubeIndexes.Right.TopLeft];
+    cube[CubeIndexes.Right.TopLeft] = originalUpBottomLeftColor;
+  }
+
+  // Adjacent corners 2.
+  {
+    const originalUpBottomRightColor = cube[CubeIndexes.Up.BottomRight];
+    cube[CubeIndexes.Up.BottomRight] = cube[CubeIndexes.Left.TopRight];
+    cube[CubeIndexes.Left.TopRight] = cube[CubeIndexes.Down.TopLeft];
+    cube[CubeIndexes.Down.TopLeft] = cube[CubeIndexes.Right.BottomLeft];
+    cube[CubeIndexes.Right.BottomLeft] = originalUpBottomRightColor;
+  }
+
+  // Adjacent edges.
+  {
+    const originalUpBottomMiddleColor = cube[CubeIndexes.Up.BottomMiddle];
+    cube[CubeIndexes.Up.BottomMiddle] = cube[CubeIndexes.Left.MiddleRight];
+    cube[CubeIndexes.Left.MiddleRight] = cube[CubeIndexes.Down.TopMiddle];
+    cube[CubeIndexes.Down.TopMiddle] = cube[CubeIndexes.Right.MiddleLeft];
+    cube[CubeIndexes.Right.MiddleLeft] = originalUpBottomMiddleColor;
+  }
+}
+
+/** Rotates the Front face of the given Cube two turns. */
+export function transformF2(cube: Cube): void {
+  transformF(cube);
+  transformF(cube);
+}
+
+/** Rotates the Front face of the given Cube one turn counterclockwise. */
+export function transformFPrime(cube: Cube): void {
+  transformF(cube);
+  transformF(cube);
+  transformF(cube);
+}
+
+/** Rotates the Left face of the given Cube one turn clockwise. */
+export function transformL(cube: Cube): void {
+  rotateFaceClockwise(cube, "Left");
+
+  // Adjacent corners 1.
+  {
+    const originalFrontTopLeftColor = cube[CubeIndexes.Front.TopLeft];
+    cube[CubeIndexes.Front.TopLeft] = cube[CubeIndexes.Up.TopLeft];
+    cube[CubeIndexes.Up.TopLeft] = cube[CubeIndexes.Back.BottomRight];
+    cube[CubeIndexes.Back.BottomRight] = cube[CubeIndexes.Down.TopLeft];
+    cube[CubeIndexes.Down.TopLeft] = originalFrontTopLeftColor;
+  }
+
+  // Adjacent corners 2.
+  {
+    const originalFrontBottomLeftColor = cube[CubeIndexes.Front.BottomLeft];
+    cube[CubeIndexes.Front.BottomLeft] = cube[CubeIndexes.Up.BottomLeft];
+    cube[CubeIndexes.Up.BottomLeft] = cube[CubeIndexes.Back.TopRight];
+    cube[CubeIndexes.Back.TopRight] = cube[CubeIndexes.Down.BottomLeft];
+    cube[CubeIndexes.Down.BottomLeft] = originalFrontBottomLeftColor;
+  }
+
+  // Adjacent edges.
+  {
+    const originalFrontMiddleLeftColor = cube[CubeIndexes.Front.MiddleLeft];
+    cube[CubeIndexes.Front.MiddleLeft] = cube[CubeIndexes.Up.MiddleLeft];
+    cube[CubeIndexes.Up.MiddleLeft] = cube[CubeIndexes.Back.MiddleRight];
+    cube[CubeIndexes.Back.MiddleRight] = cube[CubeIndexes.Down.MiddleLeft];
+    cube[CubeIndexes.Down.MiddleLeft] = originalFrontMiddleLeftColor;
+  }
+}
+
+/** Rotates the Left face of the given Cube two turns. */
+export function transformL2(cube: Cube): void {
+  transformL(cube);
+  transformL(cube);
+}
+
+/** Rotates the Left face of the given Cube one turn counterclockwise. */
+export function transformLPrime(cube: Cube): void {
+  transformL(cube);
+  transformL(cube);
+  transformL(cube);
+}
+
+/** Rotates the middle slice between R and L counter-clockwise (like L). */
+export function transformM(cube: Cube): void {
+  {
+    const originalFrontTopMiddleColor = cube[CubeIndexes.Front.TopMiddle];
+    cube[CubeIndexes.Front.TopMiddle] = cube[CubeIndexes.Up.TopMiddle];
+    cube[CubeIndexes.Up.TopMiddle] = cube[CubeIndexes.Back.BottomMiddle];
+    cube[CubeIndexes.Back.BottomMiddle] = cube[CubeIndexes.Down.TopMiddle];
+    cube[CubeIndexes.Down.TopMiddle] = originalFrontTopMiddleColor;
+  }
+
+  {
+    const originalFrontMiddleMiddleColor = cube[CubeIndexes.Front.MiddleMiddle];
+    cube[CubeIndexes.Front.MiddleMiddle] = cube[CubeIndexes.Up.MiddleMiddle];
+    cube[CubeIndexes.Up.MiddleMiddle] = cube[CubeIndexes.Back.MiddleMiddle];
+    cube[CubeIndexes.Back.MiddleMiddle] = cube[CubeIndexes.Down.MiddleMiddle];
+    cube[CubeIndexes.Down.MiddleMiddle] = originalFrontMiddleMiddleColor;
+  }
+
+  {
+    const originalFrontBottomMiddleColor = cube[CubeIndexes.Front.BottomMiddle];
+    cube[CubeIndexes.Front.BottomMiddle] = cube[CubeIndexes.Up.BottomMiddle];
+    cube[CubeIndexes.Up.BottomMiddle] = cube[CubeIndexes.Back.TopMiddle];
+    cube[CubeIndexes.Back.TopMiddle] = cube[CubeIndexes.Down.BottomMiddle];
+    cube[CubeIndexes.Down.BottomMiddle] = originalFrontBottomMiddleColor;
+  }
+}
+
+/** Rotates the middle slice between R and L two turns. */
+export function transformM2(cube: Cube): void {
+  transformM(cube);
+  transformM(cube);
+}
+
+/** Rotates the middle slice between R and L clockwise (like R). */
+export function transformMPrime(cube: Cube): void {
+  transformM(cube);
+  transformM(cube);
+  transformM(cube);
+}
+
+/** Rotates the Right face of the given Cube one turn clockwise. */
+export function transformR(cube: Cube): void {
+  rotateFaceClockwise(cube, "Right");
+
+  // Adjacent corners 1.
+  {
+    const originalFrontTopRightColor = cube[CubeIndexes.Front.TopRight];
+    cube[CubeIndexes.Front.TopRight] = cube[CubeIndexes.Down.TopRight];
+    cube[CubeIndexes.Down.TopRight] = cube[CubeIndexes.Back.BottomLeft];
+    cube[CubeIndexes.Back.BottomLeft] = cube[CubeIndexes.Up.TopRight];
+    cube[CubeIndexes.Up.TopRight] = originalFrontTopRightColor;
+  }
+
+  // Adjacent corners 2.
+  {
+    const originalFrontBottomRightColor = cube[CubeIndexes.Front.BottomRight];
+    cube[CubeIndexes.Front.BottomRight] = cube[CubeIndexes.Down.BottomRight];
+    cube[CubeIndexes.Down.BottomRight] = cube[CubeIndexes.Back.TopLeft];
+    cube[CubeIndexes.Back.TopLeft] = cube[CubeIndexes.Up.BottomRight];
+    cube[CubeIndexes.Up.BottomRight] = originalFrontBottomRightColor;
+  }
+
+  // Adjacent edges.
+  {
+    const originalFrontMiddleRightColor = cube[CubeIndexes.Front.MiddleRight];
+    cube[CubeIndexes.Front.MiddleRight] = cube[CubeIndexes.Down.MiddleRight];
+    cube[CubeIndexes.Down.MiddleRight] = cube[CubeIndexes.Back.MiddleLeft];
+    cube[CubeIndexes.Back.MiddleLeft] = cube[CubeIndexes.Up.MiddleRight];
+    cube[CubeIndexes.Up.MiddleRight] = originalFrontMiddleRightColor;
+  }
+}
+
+/** Rotates the Right face of the given Cube two turns. */
+export function transformR2(cube: Cube): void {
+  transformR(cube);
+  transformR(cube);
+}
+
+/** Rotates the Right face of the given Cube one turn counterclockwise. */
+export function transformRPrime(cube: Cube): void {
+  transformR(cube);
+  transformR(cube);
+  transformR(cube);
+}
+
+/** Rotates the middle slice between F and B clockwise (like F). */
+export function transformS(cube: Cube): void {
+  {
+    const originalUpMiddleLeftColor = cube[CubeIndexes.Up.MiddleLeft];
+    cube[CubeIndexes.Up.MiddleLeft] = cube[CubeIndexes.Left.BottomMiddle];
+    cube[CubeIndexes.Left.BottomMiddle] = cube[CubeIndexes.Down.MiddleRight];
+    cube[CubeIndexes.Down.MiddleRight] = cube[CubeIndexes.Right.TopMiddle];
+    cube[CubeIndexes.Right.TopMiddle] = originalUpMiddleLeftColor;
+  }
+
+  {
+    const originalUpMiddleMiddleColor = cube[CubeIndexes.Up.MiddleMiddle];
+    cube[CubeIndexes.Up.MiddleMiddle] = cube[CubeIndexes.Left.MiddleMiddle];
+    cube[CubeIndexes.Left.MiddleMiddle] = cube[CubeIndexes.Down.MiddleMiddle];
+    cube[CubeIndexes.Down.MiddleMiddle] = cube[CubeIndexes.Right.MiddleMiddle];
+    cube[CubeIndexes.Right.MiddleMiddle] = originalUpMiddleMiddleColor;
+  }
+
+  {
+    const originalUpMiddleRightColor = cube[CubeIndexes.Up.MiddleRight];
+    cube[CubeIndexes.Up.MiddleRight] = cube[CubeIndexes.Left.TopMiddle];
+    cube[CubeIndexes.Left.TopMiddle] = cube[CubeIndexes.Down.MiddleLeft];
+    cube[CubeIndexes.Down.MiddleLeft] = cube[CubeIndexes.Right.BottomMiddle];
+    cube[CubeIndexes.Right.BottomMiddle] = originalUpMiddleRightColor;
+  }
+}
+
+/** Rotates the middle slice between F and B two turns. */
+export function transformS2(cube: Cube): void {
+  transformS(cube);
+  transformS(cube);
+}
+
+/** Rotates the middle slice between F and B counter-clockwise (like F'). */
+export function transformSPrime(cube: Cube): void {
+  transformS(cube);
+  transformS(cube);
+  transformS(cube);
+}
+
+/** Rotates the Up face of the given Cube one turn clockwise. */
+export function transformU(cube: Cube): void {
+  rotateFaceClockwise(cube, "Up");
+
+  // Adjacent corners 1.
+  {
+    const originalFrontTopRightColor = cube[CubeIndexes.Front.TopRight];
+    cube[CubeIndexes.Front.TopRight] = cube[CubeIndexes.Right.TopRight];
+    cube[CubeIndexes.Right.TopRight] = cube[CubeIndexes.Back.TopRight];
+    cube[CubeIndexes.Back.TopRight] = cube[CubeIndexes.Left.TopRight];
+    cube[CubeIndexes.Left.TopRight] = originalFrontTopRightColor;
+  }
+
+  // Adjacent corners 2.
+  {
+    const originalFrontTopLeftColor = cube[CubeIndexes.Front.TopLeft];
+    cube[CubeIndexes.Front.TopLeft] = cube[CubeIndexes.Right.TopLeft];
+    cube[CubeIndexes.Right.TopLeft] = cube[CubeIndexes.Back.TopLeft];
+    cube[CubeIndexes.Back.TopLeft] = cube[CubeIndexes.Left.TopLeft];
+    cube[CubeIndexes.Left.TopLeft] = originalFrontTopLeftColor;
+  }
+
+  // Adjacent edges.
+  {
+    const originalFrontTopMiddleColor = cube[CubeIndexes.Front.TopMiddle];
+    cube[CubeIndexes.Front.TopMiddle] = cube[CubeIndexes.Right.TopMiddle];
+    cube[CubeIndexes.Right.TopMiddle] = cube[CubeIndexes.Back.TopMiddle];
+    cube[CubeIndexes.Back.TopMiddle] = cube[CubeIndexes.Left.TopMiddle];
+    cube[CubeIndexes.Left.TopMiddle] = originalFrontTopMiddleColor;
+  }
+}
+
+/** Rotates the Up face of the given Cube two turns. */
+export function transformU2(cube: Cube): void {
+  transformU(cube);
+  transformU(cube);
+}
+
+/** Rotates the Up face of the given Cube one turn counterclockwise. */
+export function transformUPrime(cube: Cube): void {
+  transformU(cube);
+  transformU(cube);
+  transformU(cube);
+}
+
+/** Rotates the entire Cube up (like the R move). */
+export function transformX(cube: Cube): void {
+  transformR(cube);
+  transformLPrime(cube);
+  transformMPrime(cube);
+}
+
+/** Rotates the entire Cube up two turns. */
+export function transformX2(cube: Cube): void {
+  transformX(cube);
+  transformX(cube);
+}
+
+/** Rotates the entire Cube up counter-clockwise. */
+export function transformXPrime(cube: Cube): void {
+  transformX(cube);
+  transformX(cube);
+  transformX(cube);
+}
+
+/** Rotates the entire Cube left (like the U move). */
+export function transformY(cube: Cube): void {
+  transformU(cube);
+  transformEPrime(cube);
+  transformDPrime(cube);
+}
+
+/** Rotates the entire Cube left two turns. */
+export function transformY2(cube: Cube): void {
+  transformY(cube);
+  transformY(cube);
+}
+
+/** Rotates the entire Cube right (like the U' move). */
+export function transformYPrime(cube: Cube): void {
+  transformY(cube);
+  transformY(cube);
+  transformY(cube);
+}
+
+/** Rotates the entire Cube clockwise (like the F move). */
+export function transformZ(cube: Cube): void {
+  transformF(cube);
+  transformS(cube);
+  transformBPrime(cube);
+}
+
+/** Rotates the entire Cube clockwise two turns. */
+export function transformZ2(cube: Cube): void {
+  transformZ(cube);
+  transformZ(cube);
+}
+
+/** Rotates the entire Cube counter-clockwise (like the F' move). */
+export function transformZPrime(cube: Cube): void {
+  transformZ(cube);
+  transformZ(cube);
+  transformZ(cube);
+}
+
+function rotateFaceClockwise(cube: Cube, face: Face): void {
+  const indexes = CubeIndexes[face];
+
+  // Rotate the corners.
+  const originalTopLeftColor = cube[indexes.TopLeft];
+  cube[indexes.TopLeft] = cube[indexes.BottomLeft];
+  cube[indexes.BottomLeft] = cube[indexes.BottomRight];
+  cube[indexes.BottomRight] = cube[indexes.TopRight];
+  cube[indexes.TopRight] = originalTopLeftColor;
+
+  // Rotate the edges.
+  const originalTopMiddleCorner = cube[indexes.TopMiddle];
+  cube[indexes.TopMiddle] = cube[indexes.MiddleLeft];
+  cube[indexes.MiddleLeft] = cube[indexes.BottomMiddle];
+  cube[indexes.BottomMiddle] = cube[indexes.MiddleRight];
+  cube[indexes.MiddleRight] = originalTopMiddleCorner;
+}
+
+export const DefaultScrambleOptions: Readonly<ScrambleOptions> = Object.freeze({
+  candidateMoves: Object.freeze([
+    "R",
+    "R'",
+    "R2",
+    "L",
+    "L'",
+    "L2",
+    "F",
+    "F'",
+    "F2",
+    "B",
+    "B'",
+    "B2",
+    "U",
+    "U'",
+    "U2",
+    "D",
+    "D'",
+    "D2",
+  ]),
+  moveCount: 25,
+  random: () => Math.random(),
+} satisfies ScrambleOptions);
+
+export function generateScramble(options?: Partial<ScrambleOptions>): Move[] {
+  const moveCount = options?.moveCount ?? DefaultScrambleOptions.moveCount;
+  if (!Number.isInteger(moveCount) || moveCount < 0) {
+    throw new Error(`invalid moveCount: ${inspect(moveCount)} [errwq2n67e]`);
+  }
+
+  const candidateMoves = options?.candidateMoves ?? DefaultScrambleOptions.candidateMoves;
+  if (candidateMoves.length === 0) {
+    throw new Error(`invalid candidateMoves: ${inspect(candidateMoves)} [errk2kqncg]`);
+  }
+
+  const random = options?.random ?? DefaultScrambleOptions.random;
+
+  const moves: Move[] = [];
+  while (moves.length < moveCount) {
+    const previousMove = moves.at(-1);
+    const redundantMoves = previousMove === undefined ? [] : getRedundantMovesForMove(previousMove);
+
+    const currentCandidateMoves: Move[] = [];
+    for (const move of candidateMoves) {
+      if (!redundantMoves.includes(move)) {
+        currentCandidateMoves.push(move);
+      }
+    }
+
+    const nextMove = currentCandidateMoves[Math.floor(random() * currentCandidateMoves.length)]!;
+
+    moves.push(nextMove);
+  }
+
+  return moves;
+}
+
+export function getFace(cube: Cube, face: Face): FaceStickers {
+  const range = FaceRanges[face];
+  return cube.slice(range[0], range[1]) as FaceStickers;
+}
+
+function getRedundantMovesForMove(move: Move): Move[] {
+  switch (move) {
+    case "B":
+    case "B2":
+    case "B'": {
+      return ["B", "B'", "B2"];
+    }
+    case "D":
+    case "D2":
+    case "D'": {
+      return ["D", "D'", "D2"];
+    }
+    case "E":
+    case "E2":
+    case "E'": {
+      return ["E", "E'", "E2"];
+    }
+    case "F":
+    case "F2":
+    case "F'": {
+      return ["F", "F'", "F2"];
+    }
+    case "L":
+    case "L2":
+    case "L'": {
+      return ["L", "L'", "L2"];
+    }
+    case "M":
+    case "M2":
+    case "M'": {
+      return ["M", "M'", "M2"];
+    }
+    case "R":
+    case "R2":
+    case "R'": {
+      return ["R", "R'", "R2"];
+    }
+    case "S":
+    case "S2":
+    case "S'": {
+      return ["S", "S'", "S2"];
+    }
+    case "U":
+    case "U2":
+    case "U'": {
+      return ["U", "U'", "U2"];
+    }
+    case "x":
+    case "x2":
+    case "x'": {
+      return ["x", "x'", "x2"];
+    }
+    case "y":
+    case "y2":
+    case "y'": {
+      return ["y", "y'", "y2"];
+    }
+    case "z":
+    case "z2":
+    case "z'": {
+      return ["z", "z'", "z2"];
+    }
+    default: {
+      unreachable(move, "invalid move [errfx2jkf9]");
     }
   }
-  return true;
 }
