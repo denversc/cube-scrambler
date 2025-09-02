@@ -791,23 +791,26 @@ function getFace(cube, face) {
 }
 
 // src/web_index.ts
-function main() {
-  const cube = solvedCube();
-  const scramble = generateScramble();
-  const scrambleContainer = document.getElementById("scramble-sequence");
-  if (scrambleContainer) {
-    scrambleContainer.textContent = scramble.join(", ");
+var SCRAMBLE_TEXT_ELEMENT_ID = "scramble-sequence";
+var CUBE_ELEMENT_ID = "cube-container";
+var GENERATE_BUTTON_ELEMENT_ID = "generate-button";
+function generateAndDrawScramble() {
+  const scrambleContainer = document.getElementById(SCRAMBLE_TEXT_ELEMENT_ID);
+  if (!scrambleContainer) {
+    throw new Error(`getElementById(${inspect(SCRAMBLE_TEXT_ELEMENT_ID)}) returned null [errvxvy9gq]`);
   }
+  const scramble = generateScramble();
+  scrambleContainer.textContent = scramble.join(", ");
+  const cube = solvedCube();
   for (const move of scramble) {
     transform(cube, move);
   }
-  draw(cube, "cube-container");
+  draw(cube);
 }
-function draw(cube, containerId) {
-  const container = document.getElementById(containerId);
+function draw(cube) {
+  const container = document.getElementById(CUBE_ELEMENT_ID);
   if (!container) {
-    console.error(`Container with id #${containerId} not found.`);
-    return;
+    throw new Error(`getElementById(${inspect(CUBE_ELEMENT_ID)}) returned null [errx5yqetg]`);
   }
   container.innerHTML = "";
   const faceOrder = ["Up", "Left", "Front", "Right", "Back", "Down"];
@@ -823,5 +826,13 @@ function draw(cube, containerId) {
     }
     container.appendChild(faceElement);
   }
+}
+function main() {
+  generateAndDrawScramble();
+  const generateButton = document.getElementById(GENERATE_BUTTON_ELEMENT_ID);
+  if (!generateButton) {
+    throw new Error(`getElementById(${inspect(GENERATE_BUTTON_ELEMENT_ID)}) returned null [erravh3zqf]`);
+  }
+  generateButton.addEventListener("click", generateAndDrawScramble);
 }
 main();
