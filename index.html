@@ -17,12 +17,20 @@
       }
       #scramble-sequence {
         margin-bottom: 20px;
-        font-size: 2.0em;
+        font-size: 2em;
         font-family: monospace;
-        padding: 10px;
-        background-color: #fff;
         border: 1px solid #ccc;
         border-radius: 5px;
+        overflow: hidden;
+      }
+      .scramble-line {
+        padding: 5px 10px;
+      }
+      .scramble-line:nth-child(odd) {
+        background-color: #fff;
+      }
+      .scramble-line:nth-child(even) {
+        background-color: #f0f0f0;
       }
       #generate-button {
         margin-bottom: 20px;

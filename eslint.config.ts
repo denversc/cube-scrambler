@@ -5,7 +5,7 @@ import tseslint, { type Config } from "typescript-eslint";
 
 const config: Config = tseslint.config(
   {
-    ignores: ["build/", "node_modules/"],
+    ignores: ["android/", "build/", "gh-pages/", "node_modules/"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
