@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "build",
+    "outDir": "build/tsc",
 
     "lib": ["ESNext", "dom"],
     "target": "ESNext",
@@ -17,7 +17,6 @@
     "allowUnusedLabels": false,
     "alwaysStrict": true,
     "declaration": true,
-    "emitDeclarationOnly": true,
     "erasableSyntaxOnly": true,
     "esModuleInterop": true,
     "exactOptionalPropertyTypes": true,
