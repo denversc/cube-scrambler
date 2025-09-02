@@ -25,7 +25,11 @@
     "prettier:check": "prettier --check .",
     "test": "bun test",
     "test:browser": "vitest run",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "android:setup": "bunx cap add android",
+    "android:open": "bunx cap open android",
+    "android:sync": "bunx cap sync android",
+    "build:android": "bun run build:html && bun run android:sync"
   },
   "imports": {
     "#platform": {
@@ -42,6 +46,9 @@
     "trailingComma": "all"
   },
   "devDependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
     "@types/bun": "1.2.21",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
