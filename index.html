@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cube Scrambler</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      #scramble-sequence {
+        margin-bottom: 20px;
+        font-size: 1.5em;
+        font-family: monospace;
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      #cube-container {
+        display: grid;
+        grid-template-columns: repeat(12, 30px);
+        grid-template-rows: repeat(9, 30px);
+        gap: 4px;
+      }
+      .face {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 2px;
+      }
+      .sticker {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #333;
+        box-sizing: border-box;
+      }
+      .up-face { grid-area: 1 / 4 / 4 / 7; }
+      .left-face { grid-area: 4 / 1 / 7 / 4; }
+      .front-face { grid-area: 4 / 4 / 7 / 7; }
+      .right-face { grid-area: 4 / 7 / 7 / 10; }
+      .back-face { grid-area: 4 / 10 / 7 / 13; }
+      .down-face { grid-area: 7 / 4 / 10 / 7; }
+
+      .sticker-White { background-color: #ffffff; }
+      .sticker-Yellow { background-color: #ffff00; }
+      .sticker-Green { background-color: #008000; }
+      .sticker-Blue { background-color: #0000ff; }
+      .sticker-Red { background-color: #ff0000; }
+      .sticker-Orange { background-color: #ffa500; }
+    </style>
+  <script type="module" crossorigin src="./index-1048bs63.js"></script></head>
+  <body>
+    <div id="scramble-sequence"></div>
+    <div id="cube-container"></div>
+    
+  </body>
+</html>
