@@ -18,7 +18,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build:html": "bun build --target=browser --outdir=build/html index.html",
+    "build:html": "bun build --target=browser --outdir=build/html src/browser/index.html",
     "lint": "eslint --fix .",
     "lint:check": "eslint .",
     "prettier": "prettier --write .",
