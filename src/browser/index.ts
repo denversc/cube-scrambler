@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+
 import { generateScramble, solvedCube, transform } from "../cube";
 import { renderCube, renderScrambleText } from "./scramble_renderer";
 import { loadUi, type Ui } from "./ui";
@@ -15,6 +17,10 @@ function generateAndRenderScramble(ui: Ui) {
 }
 
 function main() {
+  if (Capacitor.isNativePlatform()) {
+    document.body.style.marginTop = "48px";
+  }
+
   const ui = loadUi();
 
   ui.generateButton.addEventListener("click", event => {
