@@ -22,7 +22,9 @@ function runScramble(scramble?: Move[]) {
   const cube = solvedCube();
 
   if (scramble === undefined) {
-    scramble = generateScramble();
+    scramble = generateScramble({
+      candidateMoves: ["R", "R2", "R'", "L", "L2", "L'", "U"],
+    });
   }
 
   console.log(scramble.join(", "));

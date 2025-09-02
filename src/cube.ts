@@ -4,7 +4,7 @@ import { unreachable } from "./util/unreachable";
 
 export type Color = "Blue" | "Green" | "Orange" | "Red" | "White" | "Yellow";
 
-export interface Colors {
+export interface Colors extends Record<Color, string> {
   Blue: "Blue";
   Green: "Green";
   Orange: "Orange";
@@ -24,7 +24,7 @@ export const Colors: Readonly<Colors> = Object.freeze({
 
 export type Face = "Back" | "Down" | "Front" | "Left" | "Right" | "Up";
 
-export interface Faces {
+export interface Faces extends Record<Face, string> {
   Back: "Back";
   Down: "Down";
   Front: "Front";
@@ -42,7 +42,7 @@ export const Faces: Readonly<Faces> = Object.freeze({
   Up: "Up",
 } satisfies Faces);
 
-export interface FaceRanges {
+export interface FaceRanges extends Record<Face, Readonly<[number, number]>> {
   Back: Readonly<[9, 18]>;
   Down: Readonly<[45, 54]>;
   Front: Readonly<[0, 9]>;
@@ -258,6 +258,118 @@ export type Move =
   | "z2"
   | "z"
   | "z'";
+
+export type MoveFamily = "B" | "D" | "E" | "F" | "L" | "M" | "R" | "S" | "U" | "x" | "y" | "z";
+
+export interface MoveFamilyByMove extends Record<Move, MoveFamily> {
+  "B": "B";
+  "B2": "B";
+  "B'": "B";
+  "D": "D";
+  "D2": "D";
+  "D'": "D";
+  "E": "E";
+  "E2": "E";
+  "E'": "E";
+  "F": "F";
+  "F2": "F";
+  "F'": "F";
+  "L": "L";
+  "L2": "L";
+  "L'": "L";
+  "M": "M";
+  "M2": "M";
+  "M'": "M";
+  "R": "R";
+  "R2": "R";
+  "R'": "R";
+  "S": "S";
+  "S2": "S";
+  "S'": "S";
+  "U": "U";
+  "U2": "U";
+  "U'": "U";
+  "x": "x";
+  "x2": "x";
+  "x'": "x";
+  "y": "y";
+  "y2": "y";
+  "y'": "y";
+  "z": "z";
+  "z2": "z";
+  "z'": "z";
+}
+
+export const MoveFamilyByMove: Readonly<MoveFamilyByMove> = Object.freeze({
+  "B": "B",
+  "B2": "B",
+  "B'": "B",
+  "D": "D",
+  "D2": "D",
+  "D'": "D",
+  "E": "E",
+  "E2": "E",
+  "E'": "E",
+  "F": "F",
+  "F2": "F",
+  "F'": "F",
+  "L": "L",
+  "L2": "L",
+  "L'": "L",
+  "M": "M",
+  "M2": "M",
+  "M'": "M",
+  "R": "R",
+  "R2": "R",
+  "R'": "R",
+  "S": "S",
+  "S2": "S",
+  "S'": "S",
+  "U": "U",
+  "U2": "U",
+  "U'": "U",
+  "x": "x",
+  "x2": "x",
+  "x'": "x",
+  "y": "y",
+  "y2": "y",
+  "y'": "y",
+  "z": "z",
+  "z2": "z",
+  "z'": "z",
+} as const);
+
+export type MoveAxis = "x" | "y" | "z";
+
+export interface MoveAxisByMoveFamily extends Record<MoveFamily, MoveAxis> {
+  "B": "z";
+  "D": "y";
+  "E": "y";
+  "F": "z";
+  "L": "x";
+  "M": "x";
+  "R": "x";
+  "S": "z";
+  "U": "y";
+  "x": "x";
+  "y": "y";
+  "z": "z";
+}
+
+export const MoveAxisByMoveFamily: Readonly<MoveAxisByMoveFamily> = Object.freeze({
+  "B": "z",
+  "D": "y",
+  "E": "y",
+  "F": "z",
+  "L": "x",
+  "M": "x",
+  "R": "x",
+  "S": "z",
+  "U": "y",
+  "x": "x",
+  "y": "y",
+  "z": "z",
+});
 
 export interface ScrambleOptions {
   candidateMoves: Readonly<Move[]>;
@@ -983,12 +1095,34 @@ export function generateScramble(options?: Partial<ScrambleOptions>): Move[] {
 
   const moves: Move[] = [];
   while (moves.length < moveCount) {
-    const previousMove = moves.at(-1);
-    const redundantMoves = previousMove === undefined ? [] : getRedundantMovesForMove(previousMove);
+    const lastMove = moves.at(-1);
+    const excludedMoveFamilies = new Set<MoveFamily>();
+    if (lastMove !== undefined) {
+      const lastMoveFamily = MoveFamilyByMove[lastMove];
+      const lastMoveAxis = MoveAxisByMoveFamily[lastMoveFamily];
+      excludedMoveFamilies.add(lastMoveFamily);
+
+      let index = -2;
+      while (true) {
+        const move = moves.at(index);
+        if (move === undefined) {
+          break;
+        }
+
+        const moveFamily = MoveFamilyByMove[move];
+        const moveAxis = MoveAxisByMoveFamily[moveFamily];
+        if (moveAxis !== lastMoveAxis) {
+          break;
+        }
+
+        excludedMoveFamilies.add(moveFamily);
+        index--;
+      }
+    }
 
     const currentCandidateMoves: Move[] = [];
     for (const move of candidateMoves) {
-      if (!redundantMoves.includes(move)) {
+      if (!excludedMoveFamilies.has(MoveFamilyByMove[move])) {
         currentCandidateMoves.push(move);
       }
     }
@@ -1004,72 +1138,4 @@ export function generateScramble(options?: Partial<ScrambleOptions>): Move[] {
 export function getFace(cube: Cube, face: Face): FaceStickers {
   const range = FaceRanges[face];
   return cube.slice(range[0], range[1]) as FaceStickers;
-}
-
-function getRedundantMovesForMove(move: Move): Move[] {
-  switch (move) {
-    case "B":
-    case "B2":
-    case "B'": {
-      return ["B", "B'", "B2"];
-    }
-    case "D":
-    case "D2":
-    case "D'": {
-      return ["D", "D'", "D2"];
-    }
-    case "E":
-    case "E2":
-    case "E'": {
-      return ["E", "E'", "E2"];
-    }
-    case "F":
-    case "F2":
-    case "F'": {
-      return ["F", "F'", "F2"];
-    }
-    case "L":
-    case "L2":
-    case "L'": {
-      return ["L", "L'", "L2"];
-    }
-    case "M":
-    case "M2":
-    case "M'": {
-      return ["M", "M'", "M2"];
-    }
-    case "R":
-    case "R2":
-    case "R'": {
-      return ["R", "R'", "R2"];
-    }
-    case "S":
-    case "S2":
-    case "S'": {
-      return ["S", "S'", "S2"];
-    }
-    case "U":
-    case "U2":
-    case "U'": {
-      return ["U", "U'", "U2"];
-    }
-    case "x":
-    case "x2":
-    case "x'": {
-      return ["x", "x'", "x2"];
-    }
-    case "y":
-    case "y2":
-    case "y'": {
-      return ["y", "y'", "y2"];
-    }
-    case "z":
-    case "z2":
-    case "z'": {
-      return ["z", "z'", "z2"];
-    }
-    default: {
-      unreachable(move, "invalid move [errfx2jkf9]");
-    }
-  }
 }
