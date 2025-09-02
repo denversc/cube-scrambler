@@ -790,49 +790,78 @@ function getFace(cube, face) {
   return cube.slice(range[0], range[1]);
 }
 
-// src/web_index.ts
-var SCRAMBLE_TEXT_ELEMENT_ID = "scramble-sequence";
-var CUBE_ELEMENT_ID = "cube-container";
-var GENERATE_BUTTON_ELEMENT_ID = "generate-button";
-function generateAndDrawScramble() {
-  const scrambleContainer = document.getElementById(SCRAMBLE_TEXT_ELEMENT_ID);
-  if (!scrambleContainer) {
-    throw new Error(`getElementById(${inspect(SCRAMBLE_TEXT_ELEMENT_ID)}) returned null [errvxvy9gq]`);
-  }
-  const scramble = generateScramble();
-  scrambleContainer.textContent = scramble.join(", ");
-  const cube = solvedCube();
-  for (const move of scramble) {
-    transform(cube, move);
-  }
-  draw(cube);
-}
-function draw(cube) {
-  const container = document.getElementById(CUBE_ELEMENT_ID);
-  if (!container) {
-    throw new Error(`getElementById(${inspect(CUBE_ELEMENT_ID)}) returned null [errx5yqetg]`);
-  }
-  container.innerHTML = "";
-  const faceOrder = ["Up", "Left", "Front", "Right", "Back", "Down"];
-  for (const faceName of faceOrder) {
+// src/browser/scramble_renderer.ts
+function renderCube(cube, element) {
+  element.innerHTML = "";
+  for (const faceName of RENDER_CUBE_FACE_ORDER) {
     const faceElement = document.createElement("div");
     faceElement.classList.add("face", `${faceName.toLowerCase()}-face`);
     faceElement.style.padding = "16px";
     const stickers = getFace(cube, faceName);
-    for (const color of stickers) {
+    for (const stickerColor of stickers) {
       const stickerElement = document.createElement("div");
-      stickerElement.classList.add("sticker", `sticker-${color}`);
-      faceElement.appendChild(stickerElement);
+      stickerElement.classList.add("sticker", `sticker-${stickerColor}`);
+      faceElement.append(stickerElement);
     }
-    container.appendChild(faceElement);
+    element.append(faceElement);
   }
 }
-function main() {
-  generateAndDrawScramble();
-  const generateButton = document.getElementById(GENERATE_BUTTON_ELEMENT_ID);
-  if (!generateButton) {
-    throw new Error(`getElementById(${inspect(GENERATE_BUTTON_ELEMENT_ID)}) returned null [erravh3zqf]`);
+function renderScrambleText(scramble, element, options) {
+  const maximumMovesPerLine = options?.maximumMovesPerLine ?? 5;
+  if (!Number.isInteger(maximumMovesPerLine) || maximumMovesPerLine < 1) {
+    throw new Error(`invalid maximum moves per line: ${inspect(maximumMovesPerLine)} [err23xgq9y]`);
   }
-  generateButton.addEventListener("click", generateAndDrawScramble);
+  element.innerHTML = "";
+  for (let index = 0;index < scramble.length; index += maximumMovesPerLine) {
+    const chunk = scramble.slice(index, index + maximumMovesPerLine);
+    const lineElement = document.createElement("div");
+    lineElement.classList.add("scramble-line");
+    lineElement.textContent = NON_BREAKING_SPACE + chunk.map((s) => s.padEnd(3, NON_BREAKING_SPACE)).join("");
+    element.append(lineElement);
+  }
+}
+var RENDER_CUBE_FACE_ORDER = Object.freeze([
+  "Up",
+  "Left",
+  "Front",
+  "Right",
+  "Back",
+  "Down"
+]);
+var NON_BREAKING_SPACE = " ";
+
+// src/browser/ui.ts
+function loadUi() {
+  return {
+    cubeContainer: getElementById("cube-container"),
+    generateButton: getElementById("generate-button"),
+    scrambleText: getElementById("scramble-sequence")
+  };
+}
+function getElementById(id) {
+  const element = document.querySelector("#" + id);
+  if (!element) {
+    throw new Error(`unable to find element with ID ${inspect(id)} [errktkyf2g]`);
+  }
+  return element;
+}
+
+// src/browser/index.ts
+function generateAndRenderScramble(ui) {
+  const scramble = generateScramble();
+  const cube = solvedCube();
+  for (const move of scramble) {
+    transform(cube, move);
+  }
+  renderScrambleText(scramble, ui.scrambleText);
+  renderCube(cube, ui.cubeContainer);
+}
+function main() {
+  const ui = loadUi();
+  ui.generateButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    generateAndRenderScramble(ui);
+  });
+  generateAndRenderScramble(ui);
 }
 main();

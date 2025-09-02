@@ -17,12 +17,20 @@
       }
       #scramble-sequence {
         margin-bottom: 20px;
-        font-size: 2.0em;
+        font-size: 2em;
         font-family: monospace;
-        padding: 10px;
-        background-color: #fff;
         border: 1px solid #ccc;
         border-radius: 5px;
+        overflow: hidden;
+      }
+      .scramble-line {
+        padding: 5px 10px;
+      }
+      .scramble-line:nth-child(odd) {
+        background-color: #fff;
+      }
+      .scramble-line:nth-child(even) {
+        background-color: #f0f0f0;
       }
       #generate-button {
         margin-bottom: 20px;
@@ -86,7 +94,7 @@
         background-color: #ffa500;
       }
     </style>
-  <script type="module" crossorigin src="./index-zhgxnme8.js"></script></head>
+  <script type="module" crossorigin src="./index-n5jyzppw.js"></script></head>
   <body>
     <button id="generate-button">Generate New Scramble</button>
     <div id="scramble-sequence"></div>
