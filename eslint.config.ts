@@ -23,6 +23,12 @@ const config: Config = tseslint.config(
   {
     rules: {
       "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-unnecessary-condition": [
+        "error",
+        {
+          allowConstantLoopConditions: "only-allowed-literals",
+        },
+      ],
       "unicorn/filename-case": [
         "error",
         {

@@ -14,6 +14,7 @@ export function loadUi(): Ui {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function getElementById<T extends HTMLElement>(id: string): T {
   const element = document.querySelector("#" + id);
   if (!element) {
