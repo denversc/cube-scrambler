@@ -5,6 +5,11 @@ function main() {
   const cube = solvedCube();
   const scramble = generateScramble();
 
+  const scrambleContainer = document.getElementById("scramble-sequence");
+  if (scrambleContainer) {
+    scrambleContainer.textContent = scramble.join(", ");
+  }
+
   for (const move of scramble) {
     transform(cube, move);
   }
