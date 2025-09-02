@@ -262,113 +262,113 @@ export type Move =
 export type MoveFamily = "B" | "D" | "E" | "F" | "L" | "M" | "R" | "S" | "U" | "x" | "y" | "z";
 
 export interface MoveFamilyByMove extends Record<Move, MoveFamily> {
-  "B": "B";
-  "B2": "B";
+  B: "B";
+  B2: "B";
   "B'": "B";
-  "D": "D";
-  "D2": "D";
+  D: "D";
+  D2: "D";
   "D'": "D";
-  "E": "E";
-  "E2": "E";
+  E: "E";
+  E2: "E";
   "E'": "E";
-  "F": "F";
-  "F2": "F";
+  F: "F";
+  F2: "F";
   "F'": "F";
-  "L": "L";
-  "L2": "L";
+  L: "L";
+  L2: "L";
   "L'": "L";
-  "M": "M";
-  "M2": "M";
+  M: "M";
+  M2: "M";
   "M'": "M";
-  "R": "R";
-  "R2": "R";
+  R: "R";
+  R2: "R";
   "R'": "R";
-  "S": "S";
-  "S2": "S";
+  S: "S";
+  S2: "S";
   "S'": "S";
-  "U": "U";
-  "U2": "U";
+  U: "U";
+  U2: "U";
   "U'": "U";
-  "x": "x";
-  "x2": "x";
+  x: "x";
+  x2: "x";
   "x'": "x";
-  "y": "y";
-  "y2": "y";
+  y: "y";
+  y2: "y";
   "y'": "y";
-  "z": "z";
-  "z2": "z";
+  z: "z";
+  z2: "z";
   "z'": "z";
 }
 
 export const MoveFamilyByMove: Readonly<MoveFamilyByMove> = Object.freeze({
-  "B": "B",
-  "B2": "B",
+  B: "B",
+  B2: "B",
   "B'": "B",
-  "D": "D",
-  "D2": "D",
+  D: "D",
+  D2: "D",
   "D'": "D",
-  "E": "E",
-  "E2": "E",
+  E: "E",
+  E2: "E",
   "E'": "E",
-  "F": "F",
-  "F2": "F",
+  F: "F",
+  F2: "F",
   "F'": "F",
-  "L": "L",
-  "L2": "L",
+  L: "L",
+  L2: "L",
   "L'": "L",
-  "M": "M",
-  "M2": "M",
+  M: "M",
+  M2: "M",
   "M'": "M",
-  "R": "R",
-  "R2": "R",
+  R: "R",
+  R2: "R",
   "R'": "R",
-  "S": "S",
-  "S2": "S",
+  S: "S",
+  S2: "S",
   "S'": "S",
-  "U": "U",
-  "U2": "U",
+  U: "U",
+  U2: "U",
   "U'": "U",
-  "x": "x",
-  "x2": "x",
+  x: "x",
+  x2: "x",
   "x'": "x",
-  "y": "y",
-  "y2": "y",
+  y: "y",
+  y2: "y",
   "y'": "y",
-  "z": "z",
-  "z2": "z",
+  z: "z",
+  z2: "z",
   "z'": "z",
 } as const);
 
 export type MoveAxis = "x" | "y" | "z";
 
 export interface MoveAxisByMoveFamily extends Record<MoveFamily, MoveAxis> {
-  "B": "z";
-  "D": "y";
-  "E": "y";
-  "F": "z";
-  "L": "x";
-  "M": "x";
-  "R": "x";
-  "S": "z";
-  "U": "y";
-  "x": "x";
-  "y": "y";
-  "z": "z";
+  B: "z";
+  D: "y";
+  E: "y";
+  F: "z";
+  L: "x";
+  M: "x";
+  R: "x";
+  S: "z";
+  U: "y";
+  x: "x";
+  y: "y";
+  z: "z";
 }
 
 export const MoveAxisByMoveFamily: Readonly<MoveAxisByMoveFamily> = Object.freeze({
-  "B": "z",
-  "D": "y",
-  "E": "y",
-  "F": "z",
-  "L": "x",
-  "M": "x",
-  "R": "x",
-  "S": "z",
-  "U": "y",
-  "x": "x",
-  "y": "y",
-  "z": "z",
+  B: "z",
+  D: "y",
+  E: "y",
+  F: "z",
+  L: "x",
+  M: "x",
+  R: "x",
+  S: "z",
+  U: "y",
+  x: "x",
+  y: "y",
+  z: "z",
 });
 
 export interface ScrambleOptions {

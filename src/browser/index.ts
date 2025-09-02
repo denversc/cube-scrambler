@@ -1,8 +1,8 @@
-import { Capacitor } from "@capacitor/core";
-
 import { generateScramble, solvedCube, transform } from "../cube";
 import { renderCube, renderScrambleText } from "./scramble_renderer";
 import { loadUi, type Ui } from "./ui";
+
+declare let ce2ycyt3gs_isCapacitor: boolean | undefined;
 
 function generateAndRenderScramble(ui: Ui) {
   const scramble = generateScramble();
@@ -17,13 +17,13 @@ function generateAndRenderScramble(ui: Ui) {
 }
 
 function main() {
-  if (Capacitor.isNativePlatform()) {
+  if (ce2ycyt3gs_isCapacitor === true) {
     document.body.style.marginTop = "48px";
   }
 
   const ui = loadUi();
 
-  ui.generateButton.addEventListener("click", event => {
+  ui.generateButton.addEventListener("click", (event) => {
     event.preventDefault();
     generateAndRenderScramble(ui);
   });

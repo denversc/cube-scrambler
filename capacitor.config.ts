@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "com.cubescrambler.app",
   appName: "Cube Scrambler",
-  webDir: "build/html",
+  webDir: "build/capacitor",
 };
 
 export default config;
