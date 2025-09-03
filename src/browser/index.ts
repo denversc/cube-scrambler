@@ -5,14 +5,14 @@ import { loadUi, type Ui } from "./ui";
 
 declare let ce2ycyt3gs_isCapacitor: boolean | undefined;
 
-function isCapacitor(): boolean {
-  return typeof ce2ycyt3gs_isCapacitor === "boolean" && ce2ycyt3gs_isCapacitor;
-}
-
 function generateAndRenderScramble(ui: Ui) {
   const scramble = generateScramble();
   state.lastScramble = scramble;
   renderScramble(ui, scramble);
+}
+
+function isCapacitor(): boolean {
+  return typeof ce2ycyt3gs_isCapacitor === "boolean" && ce2ycyt3gs_isCapacitor;
 }
 
 function main() {
