@@ -107,6 +107,9 @@ var CubeIndexes = {
     TopRight: 38
   }
 };
+function isMove(value) {
+  return typeof value === "string" && value in MoveFamilyByMove;
+}
 var MoveFamilyByMove = Object.freeze({
   B: "B",
   B2: "B",
@@ -830,6 +833,81 @@ var RENDER_CUBE_FACE_ORDER = Object.freeze([
 ]);
 var NON_BREAKING_SPACE = " ";
 
+// src/browser/state.ts
+var Keys = Object.freeze({
+  lastScramble: "lastScramble"
+});
+
+class StateImpl {
+  get lastScramble() {
+    return this.#values.lastScramble.load();
+  }
+  set lastScramble(value) {
+    this.#values.lastScramble.store(value);
+  }
+  #values;
+  constructor(storage) {
+    this.#values = Object.freeze({
+      lastScramble: new StateValue(storage, Keys.lastScramble, isMoveArray)
+    });
+  }
+}
+
+class StateValue {
+  #cachedValue = undefined;
+  #key;
+  #storage;
+  #valueAsserter;
+  constructor(storage, key, valueAsserter) {
+    this.#storage = storage;
+    this.#key = key;
+    this.#valueAsserter = valueAsserter;
+  }
+  load() {
+    const value = this.#loadJSON();
+    if (value !== undefined && this.#valueAsserter(value)) {
+      this.#cachedValue = value;
+      return value;
+    }
+    return this.#cachedValue;
+  }
+  store(value) {
+    if (value === undefined) {
+      this.#cachedValue = undefined;
+      this.#storage?.removeItem(this.#key);
+    } else {
+      this.#cachedValue = value;
+      this.#storeJSON(value);
+    }
+  }
+  #loadJSON() {
+    const value = this.#storage?.getItem(this.#key) ?? undefined;
+    if (value === undefined) {
+      return;
+    }
+    try {
+      return JSON.parse(value);
+    } catch {
+      return;
+    }
+  }
+  #storeJSON(value) {
+    this.#storage?.setItem(this.#key, JSON.stringify(value));
+  }
+}
+function getStorage() {
+  try {
+    return globalThis.localStorage;
+  } catch (error) {
+    console.warn("WARNING: unable to retrieve local storage:", error, "[wrnp5drhjn]");
+    return;
+  }
+}
+function isMoveArray(value) {
+  return Array.isArray(value) && value.every((item) => isMove(item));
+}
+var state = new StateImpl(getStorage());
+
 // src/browser/ui.ts
 function loadUi() {
   return {
@@ -849,19 +927,29 @@ function getElementById(id) {
 // src/browser/index.ts
 function generateAndRenderScramble(ui) {
   const scramble = generateScramble();
+  state.lastScramble = scramble;
+  renderScramble(ui, scramble);
+}
+function main() {
+  if (false) {}
+  const ui = loadUi();
+  ui.generateButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    generateAndRenderScramble(ui);
+  });
+  const initialScramble = state.lastScramble;
+  if (initialScramble) {
+    renderScramble(ui, initialScramble);
+  } else {
+    generateAndRenderScramble(ui);
+  }
+}
+function renderScramble(ui, scramble) {
   const cube = solvedCube();
   for (const move of scramble) {
     transform(cube, move);
   }
   renderScrambleText(scramble, ui.scrambleText);
   renderCube(cube, ui.cubeContainer);
-}
-function main() {
-  const ui = loadUi();
-  ui.generateButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    generateAndRenderScramble(ui);
-  });
-  generateAndRenderScramble(ui);
 }
 main();
