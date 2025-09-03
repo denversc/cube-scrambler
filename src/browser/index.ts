@@ -1,12 +1,41 @@
-import { generateScramble, solvedCube, transform } from "../cube";
+import { generateScramble, type Move, solvedCube, transform } from "../cube";
 import { renderCube, renderScrambleText } from "./scramble_renderer";
+import { state } from "./state";
 import { loadUi, type Ui } from "./ui";
 
 declare let ce2ycyt3gs_isCapacitor: boolean | undefined;
 
+function isCapacitor(): boolean {
+  return typeof ce2ycyt3gs_isCapacitor === "boolean" && ce2ycyt3gs_isCapacitor;
+}
+
 function generateAndRenderScramble(ui: Ui) {
   const scramble = generateScramble();
+  state.lastScramble = scramble;
+  renderScramble(ui, scramble);
+}
 
+function main() {
+  if (isCapacitor()) {
+    document.body.style.marginTop = "48px";
+  }
+
+  const ui = loadUi();
+
+  ui.generateButton.addEventListener("click", event => {
+    event.preventDefault();
+    generateAndRenderScramble(ui);
+  });
+
+  const initialScramble = state.lastScramble;
+  if (initialScramble) {
+    renderScramble(ui, initialScramble);
+  } else {
+    generateAndRenderScramble(ui);
+  }
+}
+
+function renderScramble(ui: Ui, scramble: Move[]) {
   const cube = solvedCube();
   for (const move of scramble) {
     transform(cube, move);
@@ -14,21 +43,6 @@ function generateAndRenderScramble(ui: Ui) {
 
   renderScrambleText(scramble, ui.scrambleText);
   renderCube(cube, ui.cubeContainer);
-}
-
-function main() {
-  if (ce2ycyt3gs_isCapacitor === true) {
-    document.body.style.marginTop = "48px";
-  }
-
-  const ui = loadUi();
-
-  ui.generateButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    generateAndRenderScramble(ui);
-  });
-
-  generateAndRenderScramble(ui);
 }
 
 main();

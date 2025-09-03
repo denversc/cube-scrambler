@@ -41,7 +41,7 @@ export function renderScrambleText(
     const lineElement = document.createElement("div");
     lineElement.classList.add("scramble-line");
     lineElement.textContent =
-      NON_BREAKING_SPACE + chunk.map((s) => s.padEnd(3, NON_BREAKING_SPACE)).join("");
+      NON_BREAKING_SPACE + chunk.map(s => s.padEnd(3, NON_BREAKING_SPACE)).join("");
     element.append(lineElement);
   }
 }

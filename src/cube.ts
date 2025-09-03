@@ -300,6 +300,10 @@ export interface MoveFamilyByMove extends Record<Move, MoveFamily> {
   "z'": "z";
 }
 
+export function isMove(value: unknown): value is Move {
+  return typeof value === "string" && value in MoveFamilyByMove;
+}
+
 export const MoveFamilyByMove: Readonly<MoveFamilyByMove> = Object.freeze({
   B: "B",
   B2: "B",
