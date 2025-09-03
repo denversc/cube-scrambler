@@ -11,12 +11,8 @@ function generateAndRenderScramble(ui: Ui) {
   renderScramble(ui, scramble);
 }
 
-function isCapacitor(): boolean {
-  return typeof ce2ycyt3gs_isCapacitor === "boolean" && ce2ycyt3gs_isCapacitor;
-}
-
 function main() {
-  if (isCapacitor()) {
+  if (ce2ycyt3gs_isCapacitor) {
     document.body.style.marginTop = "48px";
   }
 
