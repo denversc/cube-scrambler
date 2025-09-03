@@ -1,16 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {
-  type Cube,
-  type Face,
-  Faces,
-  generateScramble,
-  getFace,
-  type Move,
-  solvedCube,
-  transform,
-} from "./cube.ts";
-import { draw } from "./draw.ts";
+import { type Cube, type Face, Faces, getFace, type Move, solvedCube, transform } from "./cube.ts";
+import { draw } from "./draw";
+import { generateScramble } from "./scramble";
 
 function log(cube: Cube) {
   for (const face in Faces) {

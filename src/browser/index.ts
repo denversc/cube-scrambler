@@ -1,4 +1,5 @@
-import { generateScramble, type Move, solvedCube, transform } from "../cube";
+import { type Move, solvedCube, transform } from "../cube";
+import { generateScramble } from "../scramble";
 import { renderCube, renderScrambleText } from "./scramble_renderer";
 import { state } from "./state";
 import { loadUi, type Ui } from "./ui";
