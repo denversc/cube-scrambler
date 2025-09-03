@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { type Cube, type Face, Faces, getFace, type Move, solvedCube, transform } from "./cube.ts";
+import { type Cube, type Face, Faces, getFace, type Move, solvedCube } from "./cube";
+import { transform } from "./transform";
 import { draw } from "./draw";
 import { generateScramble } from "./scramble";
 
