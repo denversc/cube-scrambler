@@ -29,12 +29,28 @@ const config: Config = tseslint.config(
           allowConstantLoopConditions: "only-allowed-literals",
         },
       ],
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        {
+          allowNumber: true,
+        },
+      ],
+      "unicorn/consistent-function-scoping": "off",
       "unicorn/filename-case": [
         "error",
         {
           case: "snakeCase",
         },
       ],
+      "unicorn/number-literal-case": "off",
+      "unicorn/numeric-separators-style": "off",
+    },
+  },
+  {
+    files: ["test/**/*.ts"],
+    rules: {
+      "@typescript-eslint/restrict-template-expressions": "off",
+      "unicorn/no-null": "off",
     },
   },
 );
