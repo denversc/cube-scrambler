@@ -1,9 +1,10 @@
 import { inspect } from "#platform";
 import { describe, expect, test } from "vitest";
 
-import { type Move, MoveFamilyByMove, Moves } from "../src/cube";
+import { type Move, MoveFamilyByMove, Moves, solvedCube } from "../src/cube";
 import { optimizedMoves } from "../src/optimize";
 import { generateScramble } from "../src/scramble";
+import { transform } from "../src/transform";
 import { Random } from "./testing/random";
 import { repeat } from "./testing/repeat";
 
@@ -146,6 +147,29 @@ describe("optimizedMoves() [s6w78n6x3w]", () => {
         return { expectedOptimizedScramble, scramble };
       },
       testId: "qs3v67nmrn",
+    });
+  });
+
+  test("optimized scrambles should produce the same cube state [nqtta633j5]", () => {
+    const random = new Random();
+    repeat(100, iterationIndex => {
+      const scramble = generateScramble({ moveCount: 1000, random: () => random.next() });
+      random.shuffle(scramble, { permutationCount: 500 });
+
+      const optimizedScramble = optimizedMoves(scramble);
+
+      const cube = solvedCube();
+      transform(cube, scramble);
+      const optimizedCube = solvedCube();
+      transform(optimizedCube, optimizedScramble);
+
+      const failMessage =
+        `scramble=${inspect(scramble)}, optimizedScramble=${inspect(optimizedScramble)}, ` +
+        `cube=${inspect(cube)}, optimizedCube=${inspect(optimizedCube)}, ` +
+        `iterationIndex=${iterationIndex}, ` +
+        `random.seed=${random.seed} [rtgedhhfkr]`;
+      expect(optimizedScramble.length, failMessage).toBeLessThanOrEqual(scramble.length);
+      expect(optimizedCube, failMessage).toEqual(cube);
     });
   });
 });
