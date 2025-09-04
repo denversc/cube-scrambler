@@ -84,7 +84,7 @@ const moveByMoveFamilyByMoveAmount: Record<number, Record<MoveFamily, Move>> = {
   },
 };
 
-export function optimizedMoves(moves: readonly Move[]): Move[] {
+export function calculateOptimizedMoves(moves: readonly Move[]): Move[] {
   const optimizedMoves: Move[] = [];
 
   for (const move of moves) {

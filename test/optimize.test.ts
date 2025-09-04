@@ -2,20 +2,20 @@ import { inspect } from "#platform";
 import { describe, expect, test } from "vitest";
 
 import { type Move, MoveFamilyByMove, Moves, solvedCube } from "../src/cube";
-import { optimizedMoves } from "../src/optimize";
+import { calculateOptimizedMoves } from "../src/optimize";
 import { generateScramble } from "../src/scramble";
 import { transform } from "../src/transform";
 import { Random } from "./testing/random";
 import { repeat } from "./testing/repeat";
 
-describe("optimizedMoves() [s6w78n6x3w]", () => {
+describe("calculateOptimizedMoves() [s6w78n6x3w]", () => {
   test("empty array [yzc8qemhyv]", () => {
-    expect(optimizedMoves([])).toEqual([]);
+    expect(calculateOptimizedMoves([])).toEqual([]);
   });
 
   test("array length 1 [dfq7yt74bz]", () => {
     for (const move of Moves) {
-      expect(optimizedMoves([move])).toEqual([move]);
+      expect(calculateOptimizedMoves([move])).toEqual([move]);
     }
   });
 
@@ -26,7 +26,7 @@ describe("optimizedMoves() [s6w78n6x3w]", () => {
       const failMessage =
         `scramble=${inspect(scramble)}, iterationIndex=${iterationIndex}, ` +
         `random.seed=${random.seed} [f89y7ftdpp]`;
-      expect(optimizedMoves(scramble), failMessage).toEqual(scramble);
+      expect(calculateOptimizedMoves(scramble), failMessage).toEqual(scramble);
     });
   });
 
@@ -156,7 +156,7 @@ describe("optimizedMoves() [s6w78n6x3w]", () => {
       const scramble = generateScramble({ moveCount: 1000, random: () => random.next() });
       random.shuffle(scramble, { permutationCount: 500 });
 
-      const optimizedScramble = optimizedMoves(scramble);
+      const optimizedScramble = calculateOptimizedMoves(scramble);
 
       const cube = solvedCube();
       transform(cube, scramble);
@@ -193,6 +193,6 @@ function assertOptimizedMovesReturns(config: AssertOptimizedMovesReturnsConfig):
       `scramble=${inspect(scramble)}, ` +
       `expectedOptimizedScramble=${inspect(expectedOptimizedScramble)}, ` +
       `iterationIndex=${iterationIndex}, random.seed=${random.seed} [mq6q7nsjtp=${testId}]`;
-    expect(optimizedMoves(scramble), failMessage).toEqual(expectedOptimizedScramble);
+    expect(calculateOptimizedMoves(scramble), failMessage).toEqual(expectedOptimizedScramble);
   });
 }
