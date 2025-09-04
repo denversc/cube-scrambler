@@ -1,6 +1,14 @@
 import { inspect } from "#platform";
 
-import { type Move, MoveAxisByMoveFamily, type MoveFamily, MoveFamilyByMove } from "./cube";
+import {
+  type Cube,
+  type Move,
+  MoveAxisByMoveFamily,
+  type MoveFamily,
+  MoveFamilyByMove,
+  solvedCube,
+} from "./cube";
+import { transform } from "./transform";
 
 export interface ScrambleOptions {
   candidateMoves: Readonly<Move[]>;
@@ -32,6 +40,11 @@ export const DefaultScrambleOptions: Readonly<ScrambleOptions> = Object.freeze({
   moveCount: 25,
   random: () => Math.random(),
 } satisfies ScrambleOptions);
+
+export interface GenerateScrambledCubeResult {
+  cube: Cube;
+  moves: Move[];
+}
 
 export function generateScramble(options?: Partial<ScrambleOptions>): Move[] {
   const moveCount = options?.moveCount ?? DefaultScrambleOptions.moveCount;
@@ -86,4 +99,13 @@ export function generateScramble(options?: Partial<ScrambleOptions>): Move[] {
   }
 
   return moves;
+}
+
+export function generateScrambledCube(
+  options?: Partial<ScrambleOptions>,
+): GenerateScrambledCubeResult {
+  const cube = solvedCube();
+  const moves = generateScramble(options);
+  transform(cube, moves);
+  return { cube, moves };
 }
