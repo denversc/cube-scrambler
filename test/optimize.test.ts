@@ -150,6 +150,30 @@ describe("calculateOptimizedMoves() [s6w78n6x3w]", () => {
     });
   });
 
+  test("should iteratively optimize (e.g. [R, U2, U2, R'] -> []) [pwg8kwfxkx]", () => {
+    assertOptimizedMovesReturns({
+      generateTestData(randomMoves: Move[]) {
+        const scrambleFront: Move[] = [];
+        const scrambleBack: Move[] = [];
+        for (const move of randomMoves) {
+          if (move.at(-1) === "2") {
+            scrambleFront.push(move);
+            scrambleBack.push(move);
+          } else if (move.at(-1) === "'") {
+            scrambleFront.push(move);
+            scrambleBack.push(move.slice(0, -1) as Move);
+          } else {
+            scrambleFront.push(move);
+            scrambleBack.push((move + "'") as Move);
+          }
+        }
+        const scramble = [...scrambleFront, ...scrambleBack.toReversed()];
+        return { expectedOptimizedScramble: [], scramble };
+      },
+      testId: "zwdjb2nezh",
+    });
+  });
+
   test("optimized scrambles should produce the same cube state [nqtta633j5]", () => {
     const random = new Random();
     repeat(100, iterationIndex => {
