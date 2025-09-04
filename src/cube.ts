@@ -1,3 +1,5 @@
+import { arraysContainSameElementsInAnyOrder } from "./util/arrays";
+
 export type Color = "Blue" | "Green" | "Orange" | "Red" | "White" | "Yellow";
 
 export interface Colors extends Record<Color, string> {
@@ -194,6 +196,196 @@ export const CubeIndexes: CubeIndexes = Object.freeze({
   }),
 });
 
+export type CubeIndex =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20
+  | 21
+  | 22
+  | 23
+  | 24
+  | 25
+  | 26
+  | 27
+  | 28
+  | 29
+  | 30
+  | 31
+  | 32
+  | 33
+  | 34
+  | 35
+  | 36
+  | 37
+  | 38
+  | 39
+  | 40
+  | 41
+  | 42
+  | 43
+  | 44
+  | 45
+  | 46
+  | 47
+  | 48
+  | 49
+  | 50
+  | 51
+  | 52
+  | 53;
+
+export type EdgeCubeIndex =
+  | CubeIndexes["Back"]["BottomMiddle"]
+  | CubeIndexes["Back"]["MiddleLeft"]
+  | CubeIndexes["Back"]["MiddleRight"]
+  | CubeIndexes["Back"]["TopMiddle"]
+  | CubeIndexes["Down"]["BottomMiddle"]
+  | CubeIndexes["Down"]["MiddleLeft"]
+  | CubeIndexes["Down"]["MiddleRight"]
+  | CubeIndexes["Down"]["TopMiddle"]
+  | CubeIndexes["Front"]["BottomMiddle"]
+  | CubeIndexes["Front"]["MiddleLeft"]
+  | CubeIndexes["Front"]["MiddleRight"]
+  | CubeIndexes["Front"]["TopMiddle"]
+  | CubeIndexes["Left"]["BottomMiddle"]
+  | CubeIndexes["Left"]["MiddleLeft"]
+  | CubeIndexes["Left"]["MiddleRight"]
+  | CubeIndexes["Left"]["TopMiddle"]
+  | CubeIndexes["Right"]["BottomMiddle"]
+  | CubeIndexes["Right"]["MiddleLeft"]
+  | CubeIndexes["Right"]["MiddleRight"]
+  | CubeIndexes["Right"]["TopMiddle"]
+  | CubeIndexes["Up"]["BottomMiddle"]
+  | CubeIndexes["Up"]["MiddleLeft"]
+  | CubeIndexes["Up"]["MiddleRight"]
+  | CubeIndexes["Up"]["TopMiddle"];
+
+export const EdgePieces: Readonly<Array<Readonly<[EdgeCubeIndex, EdgeCubeIndex]>>> = Object.freeze([
+  Object.freeze([CubeIndexes.Back.BottomMiddle, CubeIndexes.Down.BottomMiddle] as const),
+  Object.freeze([CubeIndexes.Back.MiddleLeft, CubeIndexes.Right.MiddleRight] as const),
+  Object.freeze([CubeIndexes.Back.MiddleRight, CubeIndexes.Left.MiddleLeft] as const),
+  Object.freeze([CubeIndexes.Back.TopMiddle, CubeIndexes.Up.TopMiddle] as const),
+  Object.freeze([CubeIndexes.Front.BottomMiddle, CubeIndexes.Down.TopMiddle] as const),
+  Object.freeze([CubeIndexes.Front.MiddleLeft, CubeIndexes.Left.MiddleRight] as const),
+  Object.freeze([CubeIndexes.Front.MiddleRight, CubeIndexes.Right.MiddleLeft] as const),
+  Object.freeze([CubeIndexes.Front.TopMiddle, CubeIndexes.Up.BottomMiddle] as const),
+  Object.freeze([CubeIndexes.Up.MiddleLeft, CubeIndexes.Left.TopMiddle] as const),
+  Object.freeze([CubeIndexes.Up.MiddleRight, CubeIndexes.Right.TopMiddle] as const),
+  Object.freeze([CubeIndexes.Down.MiddleLeft, CubeIndexes.Left.BottomMiddle] as const),
+  Object.freeze([CubeIndexes.Down.MiddleRight, CubeIndexes.Right.BottomMiddle] as const),
+]);
+
+export function isEdgePiece(
+  piece: Readonly<[CubeIndex, CubeIndex]>,
+): piece is [EdgeCubeIndex, EdgeCubeIndex] {
+  return EdgePieces.some(edgePiece => arraysContainSameElementsInAnyOrder(edgePiece, piece));
+}
+
+export const EdgePieceColors: Readonly<Array<Readonly<[Color, Color]>>> = Object.freeze([
+  Object.freeze(["White", "Green"] as const),
+  Object.freeze(["White", "Red"] as const),
+  Object.freeze(["White", "Blue"] as const),
+  Object.freeze(["White", "Orange"] as const),
+  Object.freeze(["Yellow", "Green"] as const),
+  Object.freeze(["Yellow", "Red"] as const),
+  Object.freeze(["Yellow", "Blue"] as const),
+  Object.freeze(["Yellow", "Orange"] as const),
+  Object.freeze(["Red", "Blue"] as const),
+  Object.freeze(["Red", "Green"] as const),
+  Object.freeze(["Green", "Orange"] as const),
+  Object.freeze(["Orange", "Blue"] as const),
+]);
+
+export type CornerCubeIndex =
+  | CubeIndexes["Back"]["BottomLeft"]
+  | CubeIndexes["Back"]["BottomRight"]
+  | CubeIndexes["Back"]["TopLeft"]
+  | CubeIndexes["Back"]["TopRight"]
+  | CubeIndexes["Down"]["BottomLeft"]
+  | CubeIndexes["Down"]["BottomRight"]
+  | CubeIndexes["Down"]["TopLeft"]
+  | CubeIndexes["Down"]["TopRight"]
+  | CubeIndexes["Front"]["BottomLeft"]
+  | CubeIndexes["Front"]["BottomRight"]
+  | CubeIndexes["Front"]["TopLeft"]
+  | CubeIndexes["Front"]["TopRight"]
+  | CubeIndexes["Left"]["BottomLeft"]
+  | CubeIndexes["Left"]["BottomRight"]
+  | CubeIndexes["Left"]["TopLeft"]
+  | CubeIndexes["Left"]["TopRight"]
+  | CubeIndexes["Right"]["BottomLeft"]
+  | CubeIndexes["Right"]["BottomRight"]
+  | CubeIndexes["Right"]["TopLeft"]
+  | CubeIndexes["Right"]["TopRight"]
+  | CubeIndexes["Up"]["BottomLeft"]
+  | CubeIndexes["Up"]["BottomRight"]
+  | CubeIndexes["Up"]["TopLeft"]
+  | CubeIndexes["Up"]["TopRight"];
+
+export const CornerPieces: Readonly<
+  Array<Readonly<[CornerCubeIndex, CornerCubeIndex, CornerCubeIndex]>>
+> = Object.freeze([
+  Object.freeze([
+    CubeIndexes.Up.TopLeft,
+    CubeIndexes.Left.TopLeft,
+    CubeIndexes.Back.TopRight,
+  ] as const),
+  Object.freeze([
+    CubeIndexes.Up.TopRight,
+    CubeIndexes.Right.TopRight,
+    CubeIndexes.Back.TopLeft,
+  ] as const),
+  Object.freeze([
+    CubeIndexes.Up.BottomLeft,
+    CubeIndexes.Left.TopRight,
+    CubeIndexes.Front.TopLeft,
+  ] as const),
+  Object.freeze([
+    CubeIndexes.Up.BottomRight,
+    CubeIndexes.Right.TopLeft,
+    CubeIndexes.Front.TopRight,
+  ] as const),
+
+  Object.freeze([
+    CubeIndexes.Down.TopLeft,
+    CubeIndexes.Left.BottomRight,
+    CubeIndexes.Front.BottomLeft,
+  ] as const),
+  Object.freeze([
+    CubeIndexes.Down.TopRight,
+    CubeIndexes.Right.BottomLeft,
+    CubeIndexes.Front.BottomRight,
+  ] as const),
+  Object.freeze([
+    CubeIndexes.Down.BottomLeft,
+    CubeIndexes.Left.BottomLeft,
+    CubeIndexes.Back.BottomRight,
+  ] as const),
+  Object.freeze([
+    CubeIndexes.Down.BottomRight,
+    CubeIndexes.Right.BottomRight,
+    CubeIndexes.Back.BottomLeft,
+  ] as const),
+]);
+
 /**
  * An array that represents the state of a Rubik's cube.
  * Each face of the cube is represented by 9 entries in the array.
@@ -365,6 +557,23 @@ export interface MoveFamilyByMove extends Record<Move, MoveFamily> {
   "z'": "z";
 }
 
+export function isCornerPiece(
+  piece: Readonly<[CubeIndex, CubeIndex, CubeIndex]>,
+): piece is [CornerCubeIndex, CornerCubeIndex, CornerCubeIndex] {
+  return CornerPieces.some(cornerPiece => arraysContainSameElementsInAnyOrder(cornerPiece, piece));
+}
+
+export const CornerPieceColors: Readonly<Array<Readonly<[Color, Color, Color]>>> = Object.freeze([
+  Object.freeze(["White", "Green", "Orange"] as const),
+  Object.freeze(["White", "Green", "Red"] as const),
+  Object.freeze(["White", "Red", "Blue"] as const),
+  Object.freeze(["White", "Blue", "Orange"] as const),
+  Object.freeze(["Yellow", "Green", "Orange"] as const),
+  Object.freeze(["Yellow", "Green", "Red"] as const),
+  Object.freeze(["Yellow", "Red", "Blue"] as const),
+  Object.freeze(["Yellow", "Blue", "Orange"] as const),
+]);
+
 export function isMove(value: unknown): value is Move {
   return typeof value === "string" && value in MoveFamilyByMove;
 }
@@ -440,10 +649,18 @@ export const MoveAxisByMoveFamily: Readonly<MoveAxisByMoveFamily> = Object.freez
   z: "z",
 });
 
+export type MiddleCubeIndex =
+  | CubeIndexes["Back"]["MiddleMiddle"]
+  | CubeIndexes["Down"]["MiddleMiddle"]
+  | CubeIndexes["Front"]["MiddleMiddle"]
+  | CubeIndexes["Left"]["MiddleMiddle"]
+  | CubeIndexes["Right"]["MiddleMiddle"]
+  | CubeIndexes["Up"]["MiddleMiddle"];
 export function getFace(cube: Cube, face: Face): FaceStickers {
   const range = FaceRanges[face];
   return cube.slice(range[0], range[1]) as FaceStickers;
 }
+
 export function solvedCube(): Cube {
   return [
     "Green",
@@ -501,4 +718,17 @@ export function solvedCube(): Cube {
     "Yellow",
     "Yellow",
   ];
+}
+
+export const MiddlePieces: Readonly<MiddleCubeIndex[]> = Object.freeze([
+  CubeIndexes.Up.MiddleMiddle,
+  CubeIndexes.Down.MiddleMiddle,
+  CubeIndexes.Front.MiddleMiddle,
+  CubeIndexes.Back.MiddleMiddle,
+  CubeIndexes.Left.MiddleMiddle,
+  CubeIndexes.Right.MiddleMiddle,
+] as const);
+
+export function isMiddlePiece(piece: CubeIndex): piece is MiddleCubeIndex {
+  return MiddlePieces.includes(piece as MiddleCubeIndex);
 }
