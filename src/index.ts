@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { type Cube, type Face, Faces, getFace, type Move, solvedCube } from "./cube";
-import { transform } from "./transform";
 import { draw } from "./draw";
 import { generateScramble } from "./scramble";
+import { solveWhiteCross } from "./solve_white_cross";
+import { transform } from "./transform";
 
 function log(cube: Cube) {
   for (const face in Faces) {
@@ -11,21 +12,14 @@ function log(cube: Cube) {
   }
 }
 
-function runScramble(scramble?: Move[]) {
+function runScramble() {
   const cube = solvedCube();
-
-  if (scramble === undefined) {
-    scramble = generateScramble();
-  }
-
+  const scramble = generateScramble();
+  transform(cube, scramble);
+  const whiteCrossSolveMoves = solveWhiteCross(cube);
   console.log(scramble.join(", "));
-  for (const move of scramble) {
-    console.log("Move:", move);
-    transform(cube, move);
-    draw(cube);
-    console.log();
-  }
-  console.log(scramble.join(", "));
+  console.log(whiteCrossSolveMoves.join(", "));
+  draw(cube);
 }
 
 runScramble();
