@@ -34,6 +34,10 @@ export class Random {
     return this.#alea.next();
   }
 
+  nextBoolean(): boolean {
+    return this.next() >= 0.5;
+  }
+
   shuffle(array: unknown[], config: ShuffleConfig): void {
     const { permutationCount } = config;
     if (!Number.isInteger(permutationCount) || permutationCount < 0) {

@@ -617,6 +617,10 @@ export const MoveFamilyByMove: Readonly<MoveFamilyByMove> = Object.freeze({
   "z'": "z",
 } as const);
 
+export const Moves: readonly Move[] = Object.freeze(
+  Object.getOwnPropertyNames(MoveFamilyByMove) as Move[],
+);
+
 export type MoveAxis = "x" | "y" | "z";
 
 export interface MoveAxisByMoveFamily extends Record<MoveFamily, MoveAxis> {

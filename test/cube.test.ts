@@ -11,7 +11,9 @@ import {
   isCornerPiece,
   isEdgePiece,
   isMiddlePiece,
+  isMove,
   MiddlePieces,
+  Moves,
 } from "../src/cube";
 import { unreachable } from "../src/util/unreachable";
 import { Random } from "./testing/random";
@@ -280,6 +282,63 @@ describe("isMiddlePiece() [q25depntd8]", () => {
     for (const nonMiddleIndex of nonMiddleIndexes) {
       const failMessage = `nonMiddleIndex=${inspect(nonMiddleIndex)}`;
       expect(isMiddlePiece(nonMiddleIndex), failMessage).toBe(false);
+    }
+  });
+});
+
+describe("Moves [m67dy8nsp2]", () => {
+  test("correct length [wcag5dbzmd]", () => {
+    expect(Moves.length).toBe(36);
+  });
+
+  test("each value satisfies isMove() [eb4rnbtr8a]", () => {
+    for (const move of Moves) {
+      const failMessage = `move=${inspect(move)}`;
+      expect(isMove(move), failMessage).toBe(true);
+    }
+  });
+
+  test("distinct values [qmkspcajkd]", () => {
+    assertEachValueOccurrenceCount(Moves, 1, "bqsrnad3vx");
+  });
+
+  test("is deeply immutable [enq6yhjxhr]", () => {
+    expect(Object.isFrozen(Moves)).toBe(true);
+  });
+});
+
+describe("isMove() [er7mtx2key]", () => {
+  test("returns true for each value in Moves [vx4hc7h7mt]", () => {
+    for (const move of Moves) {
+      const failMessage = `move=${inspect(move)} [kfsmy9fsnn]`;
+      expect(isMove(move), failMessage).toBe(true);
+    }
+  });
+
+  test("returns false for any type other than string [xxmct2hxh7]", () => {
+    const notStrings = [
+      true,
+      false,
+      null,
+      undefined,
+      Symbol("not a string"),
+      () => "not a string",
+      {},
+      [],
+    ];
+
+    for (const notString of notStrings) {
+      const failMessage = `notString=${inspect(notString)}`;
+      expect(isMove(notString), failMessage).toBe(false);
+    }
+  });
+
+  test("returns false for any other strings [vjqwrjzmr6]", () => {
+    const notMoveStrings: string[] = ["", "'", "X", "X'", "X2", "abcde"];
+
+    for (const notMoveString of notMoveStrings) {
+      const failMessage = `notMoveString=${inspect(notMoveString)}`;
+      expect(isMove(notMoveString), failMessage).toBe(false);
     }
   });
 });
