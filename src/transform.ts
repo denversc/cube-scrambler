@@ -1,7 +1,14 @@
+import { type Cube, CubeIndexes, type Face, type Move } from "./cube";
 import { unreachable } from "./util/unreachable";
-import { type Cube, type Face, type Move, CubeIndexes } from "./cube";
 
-export function transform(cube: Cube, move: Move): void {
+export function transform(cube: Cube, move: Move | Move[]): void {
+  if (Array.isArray(move)) {
+    for (const currentMove of move) {
+      transform(cube, currentMove);
+    }
+    return;
+  }
+
   switch (move) {
     case "B": {
       transformB(cube);
