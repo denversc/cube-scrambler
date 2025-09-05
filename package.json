@@ -47,6 +47,8 @@
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@types/bun": "1.2.21",
+    "@types/js-combinatorics": "^1.2.0",
+    "@types/signale": "^1.4.7",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "@vitest/browser": "^3.2.4",
@@ -60,8 +62,8 @@
     "webdriverio": "^9.19.2"
   },
   "dependencies": {
-    "@types/signale": "^1.4.7",
     "chalk": "^5.6.0",
+    "js-combinatorics": "^2.1.2",
     "signale": "^1.4.0",
     "typescript": "^5.9.2"
   }
